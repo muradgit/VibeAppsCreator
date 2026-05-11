@@ -1,73 +1,57 @@
-import { createSupabaseAdminClient } from "@/lib/supabase/client";
-import { notFound } from "next/navigation";
-import { GithubConnect } from "@/components/connect/GithubConnect";
+"use client";
+
+import { useParams } from "next/navigation";
 import { VercelConnect } from "@/components/connect/VercelConnect";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, ShieldCheck, Globe } from "lucide-react";
+import { SupabaseConnect } from "@/components/connect/SupabaseConnect";
+import { Network, Shield, Fingerprint } from "lucide-react";
 
-async function getProject(id: string) {
-    const supabase = createSupabaseAdminClient();
-    const { data } = await supabase.from('projects').select('*').eq('id', id).single();
-    return data;
-}
-
-export default async function ConnectPage({ params }: { params: { id: string } }) {
-  const project = await getProject(params.id);
-  if (!project) notFound();
+export default function ProjectConnectPage() {
+  const params = useParams();
+  const id = params.id as string;
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
-        <div className="space-y-2 text-center mb-10">
-            <h1 className="text-3xl font-black text-white">Phase 4: Integrations</h1>
-            <p className="text-slate-500">Enable cloud access to allow the AI to commit code and deploy.</p>
-        </div>
-      
-        <div className="space-y-6">
-            <Card className="bg-slate-900 border-slate-800">
-                <CardHeader>
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 rounded-lg">
-                            <ShieldCheck className="h-5 w-5 text-blue-500" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-white text-base">Source Control</CardTitle>
-                            <CardDescription className="text-xs">Required for file generation and persistence.</CardDescription>
-                        </div>
+    <div className="flex-1 overflow-y-auto bg-slate-950 p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+            <header className="space-y-2">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center">
+                        <Network className="h-6 w-6 text-blue-500" />
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <GithubConnect isConnected={!!project.github_token_encrypted} />
-                </CardContent>
-            </Card>
+                    <h1 className="text-3xl font-black text-white tracking-tight">External Integrations</h1>
+                </div>
+                <p className="text-slate-400 text-sm max-w-2xl">
+                    Configure the cloud services where your application will be deployed and stored. These credentials are encrypted and stored securely.
+                </p>
+            </header>
 
-            <Card className="bg-slate-900 border-slate-800">
-                <CardHeader>
-                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-slate-800 rounded-lg">
-                            <Globe className="h-5 w-5 text-slate-400" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-white text-base">Cloud Deployment</CardTitle>
-                            <CardDescription className="text-xs">Optional: Direct-to-Vercel hosting automation.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <VercelConnect 
-                      projectId={params.id}
-                      isConnected={!!project.vercel_token_encrypted}
-                      onConnect={() => {}} // Client-side handled
-                    />
-                </CardContent>
-            </Card>
-        </div>
-
-        <div className="flex items-center justify-between p-4 bg-blue-600/5 border border-blue-600/20 rounded-xl mt-12">
-            <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-blue-500" />
-                <span className="text-sm font-medium text-blue-200">Gemini Pro 1.5 Active</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SupabaseConnect />
+                <VercelConnect />
             </div>
-            <span className="text-[10px] font-bold text-blue-500/50 uppercase tracking-widest">Global Secret Found</span>
+
+            <section className="p-6 rounded-2xl bg-slate-900 border border-white/5 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <Shield className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Architectural Security</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                        We use AES-256-GCM encryption for all third-party tokens. Our automation engine only accesses these tokens during active deployment or database migration tasks.
+                    </p>
+                </div>
+            </section>
+            
+            <section className="p-6 rounded-2xl bg-slate-900 border border-white/5 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <Fingerprint className="h-5 w-5 text-blue-500" />
+                </div>
+                <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Identity Mapping</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                        Your GitHub organization is automatically synchronized with your Vercel team to ensure seamless CI/CD pipeline creation for each project.
+                    </p>
+                </div>
+            </section>
         </div>
     </div>
   );

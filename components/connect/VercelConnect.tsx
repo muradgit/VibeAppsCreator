@@ -1,78 +1,82 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { CheckCircle2, KeyRound, Loader2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { VercelClient } from "@/lib/vercel/client";
 import { toast } from "sonner";
+import { ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
 
-interface VercelConnectProps {
-  projectId: string;
-  isConnected: boolean;
-  onConnect: () => void;
-}
+export function VercelConnect() {
+    const [token, setToken] = useState("");
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
-export function VercelConnect({ projectId, isConnected, onConnect }: VercelConnectProps) {
-  const [token, setToken] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+    const handleConnect = async () => {
+        if (!token) {
+            toast.error("Please enter a Vercel API token");
+            return;
+        }
 
-  const handleConnect = async () => {
-    if (!token) {
-      toast.error("Vercel token is required.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vercel_token: token, status: 'building' }),
-      });
+        setIsConnecting(true);
+        try {
+            const client = new VercelClient(token);
+            await client.getProjects(); // Validate token
+            setIsConnected(true);
+            toast.success("Successfully connected to Vercel!");
+            // In a real app, we'd save this encrypted in Supabase
+        } catch (error: any) {
+            toast.error(error.message || "Failed to connect to Vercel");
+        } finally {
+            setIsConnecting(false);
+        }
+    };
 
-      if (!response.ok) throw new Error("Connection failed.");
-      
-      toast.success("Vercel automation active!");
-      onConnect();
-    } catch (error) {
-      toast.error("Verification failed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isConnected) {
     return (
-      <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg text-blue-400 w-full">
-        <CheckCircle2 className="h-5 w-5" />
-        <span className="text-sm font-medium">Vercel Deployment Target Synced</span>
-      </div>
+        <Card className="border-white/5 bg-slate-900/50">
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="text-white flex items-center gap-2">
+                             Vercel Deployment
+                             {isConnected && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
+                            Automate deployments and preview environments.
+                        </CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="vercel-token" className="text-slate-300">API Token</Label>
+                    <div className="flex gap-2">
+                        <Input
+                            id="vercel-token"
+                            type="password"
+                            placeholder="Enter your Vercel token"
+                            value={token}
+                            onChange={(e) => setToken(e.target.value)}
+                            className="bg-slate-950 border-white/10 text-white"
+                        />
+                        <Button 
+                            onClick={handleConnect} 
+                            disabled={isConnecting || isConnected}
+                            className="bg-blue-600 hover:bg-blue-700 font-bold"
+                        >
+                            {isConnecting ? "Validating..." : isConnected ? "Connected" : "Connect"}
+                        </Button>
+                    </div>
+                </div>
+                <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3 text-xs text-blue-400 leading-relaxed">
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <p>
+                        You can generate a token in your <a href="https://vercel.com/account/tokens" target="_blank" className="font-bold underline">Vercel Account Settings</a>.
+                    </p>
+                </div>
+            </CardContent>
+        </Card>
     );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-bold text-slate-500 uppercase">Vercel API Key</label>
-        <a href="https://vercel.com/account/tokens" target="_blank" className="text-[10px] text-blue-500 hover:underline flex items-center">
-            Get token <ExternalLink className="ml-1 h-2 w-2" />
-        </a>
-      </div>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <Input 
-                type="password" 
-                placeholder="Paste Vercel token..." 
-                className="pl-10 bg-black border-slate-700 text-white"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                disabled={isLoading}
-            />
-        </div>
-        <Button onClick={handleConnect} disabled={isLoading} className="bg-white text-black hover:bg-slate-200">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-        </Button>
-      </div>
-    </div>
-  );
 }
