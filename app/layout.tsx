@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -27,6 +28,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             </TooltipProvider>
             <Toaster position="bottom-right" theme="dark" richColors />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
