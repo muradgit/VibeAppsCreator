@@ -6,34 +6,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ExternalLink, CheckCircle2, Loader2, Search, Triangle } from "lucide-react";
+import { ExternalLink, CheckCircle2, Github, Loader2, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function VercelConnect({ projectId }: { projectId: string }) {
+export function GithubConnect({ projectId }: { projectId: string }) {
     const [token, setToken] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
-    const [projects, setProjects] = useState<any[]>([]);
-    const [selectedProject, setSelectedProject] = useState("");
-    const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+    const [repos, setRepos] = useState<any[]>([]);
+    const [selectedRepo, setSelectedRepo] = useState("");
+    const [isLoadingRepos, setIsLoadingRepos] = useState(false);
 
     const handleConnect = async () => {
         if (!token) {
-            toast.error("Please enter a Vercel API token");
+            toast.error("Please enter a GitHub Personal Access Token");
             return;
         }
 
         setIsConnecting(true);
         try {
-            const res = await fetch("/api/vercel/connect", {
+            const res = await fetch("/api/github/connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token, projectId })
             });
 
-            if (!res.ok) throw new Error("Failed to validate Vercel token");
+            if (!res.ok) throw new Error("Failed to validate GitHub token");
             setIsConnected(true);
-            toast.success("Successfully connected to Vercel!");
-            fetchVercelProjects();
+            toast.success("Successfully connected to GitHub!");
+            fetchRepos();
         } catch (error: any) {
             toast.error(error.message);
         } finally {
@@ -41,30 +42,30 @@ export function VercelConnect({ projectId }: { projectId: string }) {
         }
     };
 
-    const fetchVercelProjects = async () => {
-        setIsLoadingProjects(true);
+    const fetchRepos = async () => {
+        setIsLoadingRepos(true);
         try {
-            const res = await fetch(`/api/vercel/projects?projectId=${projectId}`);
-            if (!res.ok) throw new Error("Failed to fetch Vercel projects");
+            const res = await fetch(`/api/github/repos?projectId=${projectId}`);
+            if (!res.ok) throw new Error("Failed to fetch repositories");
             const data = await res.json();
-            setProjects(data);
+            setRepos(data);
         } catch (error: any) {
             toast.error(error.message);
         } finally {
-            setIsLoadingProjects(false);
+            setIsLoadingRepos(false);
         }
     };
 
-    const handleProjectSelect = async (vercelId: string) => {
+    const handleRepoSelect = async (repoName: string) => {
         try {
-            setSelectedProject(vercelId);
+            setSelectedRepo(repoName);
             const res = await fetch(`/api/projects/${projectId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ vercel_project_id: vercelId })
+                body: JSON.stringify({ github_repo: repoName })
             });
-            if (!res.ok) throw new Error("Failed to link Vercel project");
-            toast.success("Vercel project linked successfully!");
+            if (!res.ok) throw new Error("Failed to link repository");
+            toast.success("Repository linked successfully!");
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -76,11 +77,11 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <CardTitle className="text-white flex items-center gap-2">
-                             <Triangle className="h-5 w-5 fill-white" /> Vercel Deployment
-                             {isConnected && selectedProject && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                             <Github className="h-5 w-5" /> GitHub Repository
+                             {isConnected && selectedRepo && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                         </CardTitle>
                         <CardDescription className="text-slate-400">
-                             Automate deployments and preview environments.
+                            Connect your GitHub account to enable automated code commits and deployments.
                         </CardDescription>
                     </div>
                 </div>
@@ -89,11 +90,12 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                 {!isConnected ? (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">API Token</Label>
+                            <Label htmlFor="github-token" className="text-slate-300">Personal Access Token (classic)</Label>
                             <div className="flex gap-2">
                                 <Input
+                                    id="github-token"
                                     type="password"
-                                    placeholder="Enter your Vercel token"
+                                    placeholder="ghp_xxxxxxxxxxxx"
                                     value={token}
                                     onChange={(e) => setToken(e.target.value)}
                                     className="bg-slate-950 border-white/10 text-white"
@@ -107,32 +109,32 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                                 </Button>
                             </div>
                         </div>
-                        <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3 text-[10px] text-blue-400 leading-relaxed font-bold uppercase tracking-widest">
+                        <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3 text-[10px] text-blue-400 leading-relaxed uppercase font-bold tracking-widest">
                             <ExternalLink className="h-4 w-4 shrink-0" />
                             <p>
-                                Generate a token in your <a href="https://vercel.com/account/tokens" target="_blank" className="underline italic">Vercel Settings</a>.
+                                Generate a token with <code className="text-blue-300">repo</code> scopes in <a href="https://github.com/settings/tokens" target="_blank" className="underline">Settings</a>.
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">Target Project</Label>
-                            {isLoadingProjects ? (
+                            <Label className="text-slate-300">Target Repository</Label>
+                            {isLoadingRepos ? (
                                 <div className="h-10 bg-slate-950 border border-white/10 rounded-md flex items-center justify-center">
                                     <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
                                 </div>
                             ) : (
                                 <div className="relative">
                                     <select
-                                        value={selectedProject}
-                                        onChange={(e) => handleProjectSelect(e.target.value)}
+                                        value={selectedRepo}
+                                        onChange={(e) => handleRepoSelect(e.target.value)}
                                         className="w-full bg-slate-950 border border-white/10 rounded-md p-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-500 appearance-none pr-10"
                                     >
-                                        <option value="">Select a Vercel project</option>
-                                        {projects.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.name}
+                                        <option value="">Select a repository</option>
+                                        {repos.map((repo) => (
+                                            <option key={repo.id} value={repo.full_name}>
+                                                {repo.full_name} {repo.private ? '(Private)' : ''}
                                             </option>
                                         ))}
                                     </select>
@@ -144,9 +146,9 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                             variant="outline" 
                             size="sm" 
                             className="w-full h-8 text-[10px] font-black uppercase tracking-tighter"
-                            onClick={fetchVercelProjects}
+                            onClick={fetchRepos}
                         >
-                            Refresh Project List
+                            Refresh Repositories
                         </Button>
                     </div>
                 )}

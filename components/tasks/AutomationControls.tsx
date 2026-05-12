@@ -1,0 +1,143 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useProjectStore } from "@/store/project.store";
+import { Loader2, Zap, PlayCircle, ShieldCheck, Github, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+interface AutomationControlsProps {
+    projectId: string;
+    nextTask: any | null;
+    onRefresh: () => void;
+}
+
+export function AutomationControls({ projectId, nextTask, onRefresh }: AutomationControlsProps) {
+    const { setRawStreamingText, clearStreamingCode, startAutomation, pauseAutomation } = useProjectStore();
+    const [status, setStatus] = useState<"idle" | "prompting" | "coding" | "reviewing" | "committing">("idle");
+    const [automationMode, setAutomationMode] = useState<"manual" | "semi" | "full">("semi");
+
+    const runSequence = async () => {
+        if (!nextTask) {
+            toast.info("All tasks completed");
+            return;
+        }
+        
+        try {
+            startAutomation();
+            clearStreamingCode();
+
+            // 1. Generate Prompt
+            setStatus("prompting");
+            const promptRes = await fetch("/api/gemini/generate-prompt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taskId: nextTask.id, projectId })
+            });
+            if (!promptRes.ok) throw new Error("Prompt generation failed");
+            const { prompt } = await promptRes.json();
+            
+            // 2. Generate Code (Streaming)
+            setStatus("coding");
+            const codeRes = await fetch("/api/gemini/generate-code", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taskId: nextTask.id, prompt })
+            });
+            
+            if (!codeRes.ok) throw new Error("Code generation failed");
+            
+            const reader = codeRes.body?.getReader();
+            const decoder = new TextDecoder();
+            let fullStreamed = "";
+            
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    fullStreamed += chunk;
+                    setRawStreamingText(fullStreamed);
+                }
+            }
+
+            // 3. Review
+            setStatus("reviewing");
+            const reviewRes = await fetch("/api/gemini/review", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taskId: nextTask.id })
+            });
+            if (!reviewRes.ok) throw new Error("Review failed");
+            const review = await reviewRes.json();
+
+            if (review.score >= 90 && automationMode === "full") {
+                // 4. Auto-commit
+                setStatus("committing");
+                const commitRes = await fetch("/api/github/commit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ taskId: nextTask.id, projectId })
+                });
+                if (!commitRes.ok) throw new Error("Auto-commit failed");
+                toast.success("Task completed and committed!");
+                onRefresh();
+                
+                // If full auto, continue to next task
+                setTimeout(() => runSequence(), 2000);
+            } else {
+                onRefresh();
+                toast.success("Task execution finished. Please review code.");
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setStatus("idle");
+            pauseAutomation();
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-4 p-4 bg-slate-900 border border-white/5 rounded-2xl shadow-2xl">
+            <div className="flex gap-1 p-1 bg-slate-950 rounded-xl border border-white/5">
+                {(["manual", "semi", "full"] as const).map((m) => (
+                    <button
+                        key={m}
+                        onClick={() => setAutomationMode(m)}
+                        className={cn(
+                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                            automationMode === m ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-slate-500 hover:text-slate-300"
+                        )}
+                    >
+                        {m}
+                    </button>
+                ))}
+            </div>
+
+            <div className="h-8 w-px bg-white/10" />
+
+            <Button
+                onClick={runSequence}
+                disabled={status !== "idle" || !nextTask}
+                className={cn(
+                    "flex-1 h-11 font-black transition-all",
+                    status === "idle" ? "bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20" : "bg-slate-800 text-slate-400"
+                )}
+            >
+                {status === "idle" ? (
+                    <><PlayCircle className="mr-2 h-5 w-5" /> Execute Next: {nextTask?.title || "End of Sequence"}</>
+                ) : (
+                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> {status.toUpperCase()}...</>
+                )}
+            </Button>
+
+            {status !== "idle" && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full animate-pulse">
+                    <Zap className="h-3 w-3 text-blue-400 fill-current" />
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">{status}</span>
+                </div>
+            )}
+        </div>
+    );
+}

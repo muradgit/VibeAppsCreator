@@ -6,13 +6,19 @@ import { Task, Project } from "@/types";
 import { TaskList } from "@/components/tasks/TaskList";
 import { StreamingCode } from "@/components/code/StreamingCode";
 import { ReviewPanel } from "@/components/code/ReviewPanel";
+import { AutomationControls } from "@/components/tasks/AutomationControls";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, BrainCircuit, Terminal, CheckCircle, FileCode, Check } from "lucide-react";
+import { CheckCircle2, FileCode, Check, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
-export function TaskAutomationDashboard({ initialTasks, initialProject }: { initialTasks: Task[], initialProject: Project }) {
+export function TaskAutomationDashboard({ initialTasks, initialProject, onRefresh }: { 
+    initialTasks: any[], 
+    initialProject: any,
+    onRefresh: () => void
+}) {
   const { 
     tasks, 
     setTasks, 
@@ -20,8 +26,7 @@ export function TaskAutomationDashboard({ initialTasks, initialProject }: { init
     activeTaskId, 
     setActiveTask,
     streamingCode,
-    isRunning,
-    automationMode
+    isRunning
   } = useProjectStore();
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -29,112 +34,156 @@ export function TaskAutomationDashboard({ initialTasks, initialProject }: { init
   useEffect(() => {
     setTasks(initialTasks);
     setProject(initialProject);
-    const firstPending = initialTasks.find(t => t.status !== 'done');
-    if (firstPending) setActiveTask(firstPending.id);
-  }, [initialTasks, initialProject, setTasks, setProject, setActiveTask]);
+    if (!activeTaskId && initialTasks.length > 0) {
+        const firstPending = initialTasks.find(t => t.status !== 'done');
+        if (firstPending) setActiveTask(firstPending.id);
+    }
+  }, [initialTasks, initialProject]);
 
   const activeTask = tasks.find(t => t.id === activeTaskId);
+  const nextTask = tasks.find(t => t.status === 'pending');
+
+  const handleCommit = async () => {
+    if (!activeTask) return;
+    setIsSyncing(true);
+    try {
+        const res = await fetch("/api/github/commit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ taskId: activeTask.id, projectId: initialProject.id })
+        });
+        if (!res.ok) throw new Error("Commit failed");
+        toast.success("Changes committed to GitHub");
+        onRefresh();
+    } catch (error: any) {
+        toast.error(error.message);
+    } finally {
+        setIsSyncing(false);
+    }
+  };
 
   return (
-    <>
-        <header className="h-16 px-8 flex items-center justify-between border-b bg-white shrink-0 z-10">
-            <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold text-slate-800 tracking-tight">Task Automation</h2>
-                <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full uppercase tracking-tighter">
-                    {automationMode === 'semi' ? 'Semi-Auto Mode' : automationMode === 'full' ? 'Full-Auto Mode' : 'Manual Mode'}
-                </span>
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
+        <header className="h-20 px-8 flex items-center justify-between border-b bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm">
+            <div className="flex items-center gap-6">
+                <div className="space-y-1">
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Logic Automation Hub</h2>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span>Project Context: {initialProject.name}</span>
+                        <div className="w-1 h-1 rounded-full bg-slate-300" />
+                        <span>Repo: {initialProject.github_repo || 'Not linked'}</span>
+                    </div>
+                </div>
             </div>
-            <div className="flex items-center gap-2">
-                <Button className="bg-[#0F172A] text-white hover:bg-slate-800 transition-colors h-9 px-4 text-xs font-semibold">
-                    <Play className="w-3.5 h-3.5 mr-2 fill-current" />
-                    Run Next Task
-                </Button>
+            
+            <div className="w-1/2 max-w-lg">
+                <AutomationControls 
+                    projectId={initialProject.id} 
+                    nextTask={nextTask} 
+                    onRefresh={onRefresh} 
+                />
             </div>
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-            <TaskList tasks={tasks} />
+            <aside className="w-[380px] border-r bg-slate-50 dark:bg-slate-900/50 flex flex-col shrink-0">
+                <TaskList tasks={tasks} />
+            </aside>
 
-            <section className="flex-1 p-8 overflow-y-auto bg-white flex flex-col gap-6">
+            <main className="flex-1 overflow-y-auto p-8 space-y-8 bg-white dark:bg-slate-950">
                 {activeTask ? (
-                    <>
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-2">
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="space-y-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded tracking-widest">
-                                        PHASE {activeTask.sequence_number}
+                                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg tracking-widest uppercase">
+                                        Sequence #{activeTask.sequence_number}
                                     </span>
-                                    <span className="text-[10px] text-slate-400 font-mono tracking-tighter">
-                                        ID: {activeTask.id.slice(0, 8).toUpperCase()}
+                                    <span className={cn(
+                                        "text-[10px] font-black px-2.5 py-1 rounded-lg tracking-widest uppercase",
+                                        activeTask.status === 'done' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'
+                                    )}>
+                                        {activeTask.status}
                                     </span>
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{activeTask.title}</h3>
-                                <p className="text-slate-500 text-sm max-w-2xl leading-relaxed">{activeTask.description}</p>
+                                <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{activeTask.title}</h3>
+                                <p className="text-slate-500 text-sm max-w-3xl leading-relaxed font-medium">{activeTask.description}</p>
                             </div>
-                            <div className="text-right space-y-1">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Complexity</div>
-                                <div className="text-lg font-bold text-slate-800 uppercase tracking-tighter">High</div>
-                            </div>
+                            <Link href={`/project/${initialProject.id}/task/${activeTask.id}`}>
+                                <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-bold font-mono">
+                                    Full Details <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                                </Button>
+                            </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <FileCode className="h-3 w-3" /> Files to Create
-                                </div>
-                                <ul className="space-y-3">
-                                    {activeTask.file_paths.map(f => (
-                                        <li key={f} className="text-xs font-medium text-slate-600 font-mono flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileCode className="h-4 w-4" /> Affected Workspace
+                                </h4>
+                                <div className="grid gap-2">
+                                    {activeTask.file_paths.map((f: string) => (
+                                        <div key={f} className="text-[11px] font-bold text-slate-600 font-mono flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-100">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                             {f}
-                                        </li>
+                                        </div>
                                     ))}
-                                </ul>
-                            </div>
-
-                            <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Check className="h-3.5 w-3.5" /> Acceptance Criteria
                                 </div>
-                                <ul className="space-y-3">
-                                    {activeTask.acceptance_criteria.map(c => (
-                                        <li key={c} className="text-xs flex items-center gap-2 text-slate-600 font-medium">
-                                            <div className="shrink-0 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                                                <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                            </div>
+                            </div>
+
+                            <div className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <CheckCircle2 className="h-4 w-4" /> Acceptance Scorecard
+                                </h4>
+                                <div className="grid gap-2">
+                                    {activeTask.acceptance_criteria.map((c: string) => (
+                                        <div key={c} className="text-[11px] flex items-center gap-3 text-slate-600 font-bold bg-white p-2 rounded-lg border border-slate-100">
+                                            <Check className="h-3.5 w-3.5 text-emerald-500" />
                                             {c}
-                                        </li>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex-1 mt-4">
-                             <StreamingCode codeFiles={streamingCode} isStreaming={isRunning} />
+                        <div className="mt-8 space-y-8">
+                            {isRunning || Object.keys(streamingCode).length > 0 ? (
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Logic Streaming Output</h4>
+                                    <StreamingCode codeFiles={streamingCode} isStreaming={isRunning} />
+                                </div>
+                            ) : activeTask.generated_code && (
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Constructed Payload</h4>
+                                    <div className="h-[400px]">
+                                        <StreamingCode codeFiles={activeTask.generated_code as any} isStreaming={false} />
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {activeTask.review_result && (
+                                <ReviewPanel 
+                                    review={activeTask.review_result as any} 
+                                    onCommit={handleCommit} 
+                                    onRegenerate={() => {}}
+                                    isCommitting={isSyncing}
+                                />
+                            )}
                         </div>
-                        
-                        {activeTask.review_result && (
-                            <ReviewPanel 
-                                review={activeTask.review_result as any} 
-                                onCommit={() => toast.success("Committing changes...")} 
-                                onRegenerate={() => {}}
-                                isCommitting={isSyncing}
-                            />
-                        )}
-                    </>
+                    </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center flex-1 text-center space-y-6 opacity-40">
-                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="h-10 w-10 text-slate-300" />
+                    <div className="flex flex-col items-center justify-center flex-1 text-center py-40 space-y-6 opacity-40">
+                        <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center rotate-3 border border-slate-200">
+                            <CheckCircle2 className="h-12 w-12 text-slate-300" />
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-lg font-bold text-slate-900">Queue Satisfied</p>
-                            <p className="text-sm text-slate-500">All tasks for the current phase have been processed.</p>
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Queue Optimized</h3>
+                            <p className="text-sm text-slate-500 font-medium">All pending logic tasks have been finalized for this phase.</p>
                         </div>
                     </div>
                 )}
-            </section>
+            </main>
         </div>
-    </>
+    </div>
   )
 }

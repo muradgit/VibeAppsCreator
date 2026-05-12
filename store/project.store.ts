@@ -10,14 +10,14 @@ interface ProjectStore {
   automationMode: AutomationMode;
   isRunning: boolean;
   streamingCode: Record<string, string>;
+  rawStreamingText: string;
 
   setProject: (project: Project) => void;
   setTasks: (tasks: Task[]) => void;
   setActiveTask: (taskId: string | null) => void;
   updateTask: (taskId: string, updatedFields: Partial<Task>) => void;
   setAutomationMode: (mode: AutomationMode) => void;
-  setStreamingCodeForFile: (filename: string, code: string) => void;
-  appendStreamingCodeForFile: (filename: string, chunk: string) => void;
+  setRawStreamingText: (text: string) => void;
   clearStreamingCode: () => void;
   startAutomation: () => void;
   pauseAutomation: () => void;
@@ -30,6 +30,7 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   automationMode: 'manual',
   isRunning: false,
   streamingCode: {},
+  rawStreamingText: '',
 
   setProject: (project) => set({ currentProject: project }),
   setTasks: (tasks) => set({ tasks }),
@@ -43,18 +44,22 @@ export const useProjectStore = create<ProjectStore>((set) => ({
 
   setAutomationMode: (mode) => set({ automationMode: mode }),
   
-  setStreamingCodeForFile: (filename, code) => set((state) => ({
-    streamingCode: { ...state.streamingCode, [filename]: code }
-  })),
+  setRawStreamingText: (text) => set((state) => {
+    // Basic parser for the stream format: ### FILE: path\ncode...
+    const files: Record<string, string> = {};
+    const parts = text.split(/### FILE: /);
+    parts.forEach(part => {
+        if (!part.trim()) return;
+        const [filename, ...codeParts] = part.split('\n');
+        files[filename.trim()] = codeParts.join('\n').trim();
+    });
+    return { 
+        rawStreamingText: text,
+        streamingCode: files 
+    };
+  }),
 
-  appendStreamingCodeForFile: (filename, chunk) => set((state) => ({
-    streamingCode: {
-      ...state.streamingCode,
-      [filename]: (state.streamingCode[filename] || '') + chunk,
-    }
-  })),
-
-  clearStreamingCode: () => set({ streamingCode: {} }),
+  clearStreamingCode: () => set({ streamingCode: {}, rawStreamingText: '' }),
 
   startAutomation: () => set({ isRunning: true }),
   pauseAutomation: () => set({ isRunning: false }),
