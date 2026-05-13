@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Plus, Folder, Clock, CheckCircle2, ChevronRight, LayoutGrid, List, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -93,7 +92,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5">
                                     <div className="flex items-center text-[11px] text-slate-400 font-medium">
-                                        <Clock className="w-3.5 h-3.5 mr-1" /> {formatDistanceToNow(new Date(project.updated_at))} ago
+                                        <Clock className="w-3.5 h-3.5 mr-1" /> {new Date(project.updated_at).toLocaleDateString()}
                                     </div>
                                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                                 </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "../../../../auth/[...nextauth]/route";
 import { supabase } from "@/lib/supabase/client";
 
 export async function GET(req: Request, { params }: { params: { taskId: string } }) {

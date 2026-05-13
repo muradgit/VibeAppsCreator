@@ -5,7 +5,7 @@ import { PlanSection } from "./PlanSection";
 import { TechStackCard } from "./TechStackCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Palette, Terminal, ShieldCheck, ArrowRight, BookOpen } from "lucide-react";
+import { Loader2, Palette, Terminal, ShieldCheck, ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

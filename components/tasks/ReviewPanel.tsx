@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, AlertCircle, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, AlertCircle, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CodeReview } from "@/types";
 
