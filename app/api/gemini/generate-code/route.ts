@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         }
 
         // Update task
-        await supabase.from("tasks").update({ 
+        await (supabase as any).from("tasks").update({ 
             generated_code: files,
             status: "review" 
         }).eq("id", taskId);

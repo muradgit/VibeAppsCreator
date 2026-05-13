@@ -11,8 +11,8 @@ export async function POST(req: Request) {
 
   const { taskId, projectId } = await req.json();
 
-  const { data: project } = await supabase.from("projects").select("*").eq("id", projectId).single();
-  const { data: task } = await supabase.from("tasks").select("*").eq("id", taskId).single();
+  const { data: project } = await (supabase as any).from("projects").select("*").eq("id", projectId).single();
+  const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
 
   if (!project?.github_token_encrypted || !project.github_repo) {
     return NextResponse.json({ error: "GitHub not configured for this project" }, { status: 400 });
@@ -37,9 +37,9 @@ export async function POST(req: Request) {
 
     const commitSha = result[0]?.sha || "unknown";
 
-    await supabase.from("tasks").update({
+    await (supabase as any).from("tasks").update({
       github_commit_sha: commitSha,
-      status: "done"
+      status: "done",
     }).eq("id", taskId);
 
     return NextResponse.json({ success: true, commitSha });

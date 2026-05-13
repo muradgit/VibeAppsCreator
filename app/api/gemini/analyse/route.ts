@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const validated = AnalysisResponseSchema.parse(analysis);
 
     // Save to conversations table
-    await supabase.from("conversations").insert([
+    await (supabase as any).from("conversations").insert([
       {
         project_id: projectId,
         phase: "analysis",

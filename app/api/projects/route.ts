@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("projects")
     .select("*")
     .eq("user_id", session.user.id)
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   try {
     const { name, idea_raw } = await req.json();
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("projects")
       .insert([
         {

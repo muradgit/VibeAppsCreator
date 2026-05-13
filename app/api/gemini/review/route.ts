@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   try {
     const { taskId } = await req.json();
 
-    const { data: task } = await supabase.from("tasks").select("*").eq("id", taskId).single();
+    const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
     if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     const model = getGeminiModel();
@@ -36,7 +36,7 @@ Generated Code: ${JSON.stringify(task.generated_code)}`;
 
     const isDone = validated.score >= 90;
     
-    await supabase.from("tasks").update({ 
+    await (supabase as any).from("tasks").update({ 
         review_result: validated,
         status: isDone ? "done" : "pending",
         retry_count: isDone ? task.retry_count : task.retry_count + 1

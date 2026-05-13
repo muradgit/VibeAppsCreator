@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("projectId");
 
-  const { data: project } = await supabase.from("projects").select("github_token_encrypted").eq("id", projectId).single();
+  const { data: project } = await (supabase as any).from("projects").select("github_token_encrypted").eq("id", projectId).single();
   if (!project?.github_token_encrypted) return NextResponse.json({ error: "GitHub not connected" }, { status: 400 });
 
   try {
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
       per_page: 50
     });
     
-    return NextResponse.json(repos.map(r => ({ id: r.id, name: r.name, full_name: r.full_name, private: r.private })));
+    return NextResponse.json(repos.map((r: any) => ({ id: r.id, name: r.name, full_name: r.full_name, private: r.private })));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

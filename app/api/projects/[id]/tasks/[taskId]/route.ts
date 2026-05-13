@@ -3,16 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { supabase } from "@/lib/supabase/client";
 
-export async function GET(req: Request, { params }: { params: { taskId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string; taskId: string }> }) {
+  const { id, taskId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("tasks")
     .select("*")
-    .eq("id", params.taskId)
+    .eq("id", taskId)
     .single();
 
   if (error) {
@@ -22,7 +23,8 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
   return NextResponse.json(data);
 }
 
-export async function PATCH(req: Request, { params }: { params: { taskId: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string; taskId: string }> }) {
+  const { id, taskId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,10 +43,10 @@ export async function PATCH(req: Request, { params }: { params: { taskId: string
     if (retry_count !== undefined) updateData.retry_count = retry_count;
     if (github_commit_sha !== undefined) updateData.github_commit_sha = github_commit_sha;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("tasks")
       .update(updateData)
-      .eq("id", params.taskId)
+      .eq("id", taskId)
       .select()
       .single();
 

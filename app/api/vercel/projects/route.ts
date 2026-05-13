@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("projectId");
 
-  const { data: project } = await supabase.from("projects").select("vercel_token_encrypted").eq("id", projectId).single();
+  const { data: project } = await (supabase as any).from("projects").select("vercel_token_encrypted").eq("id", projectId).single();
   if (!project?.vercel_token_encrypted) return NextResponse.json({ error: "Vercel not connected" }, { status: 400 });
 
   try {

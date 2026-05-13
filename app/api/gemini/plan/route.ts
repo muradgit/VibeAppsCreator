@@ -16,23 +16,22 @@ export async function POST(req: Request) {
     const { projectId, answers } = await req.json();
 
     // Fetch project
-    const { data: project } = await supabase
+    const { data: project } = await (supabase as any)
       .from("projects")
       .select("*")
       .eq("id", projectId)
       .single();
-
     if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
     // Fetch analysis conversations
-    const { data: conversations } = await supabase
+    const { data: conversations } = await (supabase as any)
       .from("conversations")
       .select("*")
       .eq("project_id", projectId)
       .eq("phase", "analysis")
       .order("created_at", { ascending: true });
 
-    const context = conversations?.map(c => `${c.role.toUpperCase()}: ${c.content}`).join("\n") || "";
+    const context = conversations?.map((c: any) => `${c.role.toUpperCase()}: ${c.content}`).join("\n") || "";
     const answersText = answers.map((a: any) => `Question ID ${a.questionId}: ${a.answer}`).join("\n");
 
     const model = getGeminiModel();
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
     const validated = PlanResponseSchema.parse(plan);
 
     // Update project
-    await supabase.from("projects").update({
+    await (supabase as any).from("projects").update({
       plan: validated,
       tech_stack: validated.techStack,
       constraints: validated.constraints,
@@ -76,7 +75,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const { data: createdTasks } = await supabase.from("tasks").insert(allTasks).select();
+    const { data: createdTasks } = await (supabase as any).from("tasks").insert(allTasks).select();
 
     return NextResponse.json({ plan: validated, tasks: createdTasks });
   } catch (error: any) {

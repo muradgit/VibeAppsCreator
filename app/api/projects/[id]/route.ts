@@ -3,16 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { supabase } from "@/lib/supabase/client";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("projects")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", session.user.id)
     .single();
 
@@ -23,7 +24,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(data);
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,10 +46,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (github_repo !== undefined) updateData.github_repo = github_repo;
     if (vercel_project_id !== undefined) updateData.vercel_project_id = vercel_project_id;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("projects")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", session.user.id)
       .select()
       .single();

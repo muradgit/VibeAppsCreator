@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     
     const encryptedToken = encryptToken(token);
     
-    await supabase.from("projects").update({
+    await (supabase as any).from("projects").update({
       vercel_token_encrypted: encryptedToken
     }).eq("id", projectId).eq("user_id", session.user.id);
 
