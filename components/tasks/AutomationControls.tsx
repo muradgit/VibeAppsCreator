@@ -23,6 +23,21 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             toast.info("All tasks completed");
             return;
         }
+
+        // BUG 6: Check dependencies are all done
+        if (nextTask.dependencies && nextTask.dependencies.length > 0) {
+            const allTasks = useProjectStore.getState().tasks;
+            const unmetDeps = nextTask.dependencies.filter((depId: string) => {
+                const depTask = allTasks.find((t: any) => t.id === depId);
+                return !depTask || depTask.status !== 'done';
+            });
+            if (unmetDeps.length > 0) {
+                toast.warning(`Task "${nextTask.title}" is waiting for ${unmetDeps.length} dependency/dependencies to complete first.`);
+                pauseAutomation();
+                setStatus("idle");
+                return;
+            }
+        }
         
         try {
             startAutomation();
@@ -71,6 +86,19 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             });
             if (!reviewRes.ok) throw new Error("Review failed");
             const review = await reviewRes.json();
+
+            // BUG 7: Retry Limit Not Enforced
+            const MAX_RETRIES = 3;
+            if (review.score < 90 && nextTask.retry_count >= MAX_RETRIES) {
+                pauseAutomation();
+                setStatus("idle");
+                toast.error(
+                    `Task "${nextTask.title}" has failed review ${MAX_RETRIES} times. Please manually review the prompt or edit the code before continuing.`,
+                    { duration: 8000 }
+                );
+                onRefresh();
+                return;
+            }
 
             if (review.score >= 90 && automationMode === "full") {
                 // 4. Auto-commit

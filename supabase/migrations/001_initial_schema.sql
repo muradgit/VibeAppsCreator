@@ -16,6 +16,7 @@ create table public.projects (
   vercel_project_id text,
   github_token_encrypted text,
   vercel_token_encrypted text,
+  gemini_token_encrypted text,
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null
 );

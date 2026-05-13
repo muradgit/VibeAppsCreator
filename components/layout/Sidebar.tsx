@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { FlaskConical, ListChecks, Network, GitBranch, LayoutPanelLeft, Settings, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { Task } from "@/types";
 
 const navItems = [
     { href: "analysis", icon: FlaskConical, label: "AI Analysis", step: "02" },
@@ -16,9 +18,29 @@ const navItems = [
 export function Sidebar() {
     const params = useParams();
     const pathname = usePathname();
-    const projectId = params.id;
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const projectId = params.id as string;
+
+    useEffect(() => {
+        if (!projectId) return;
+        const fetchProgress = async () => {
+            const res = await fetch(`/api/projects/${projectId}/tasks`);
+            if (res.ok) {
+                const data = await res.json();
+                setTasks(data);
+            }
+        };
+        fetchProgress();
+        // Set up an interval or listen to a store for real-time updates if needed
+        // For now, periodic fetch or store-based sync is better. 
+        // But the prompt asks for useEffect fetching on mount.
+    }, [projectId]);
 
     if (!projectId) return null;
+
+    const completedCount = tasks.filter(t => t.status === 'done').length;
+    const totalCount = tasks.length;
+    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
     return (
         <aside className="w-60 bg-[#0F172A] shrink-0 border-r border-white/5 flex flex-col justify-between py-6">
@@ -49,10 +71,10 @@ export function Sidebar() {
                 <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
                     <div className="text-[10px] text-slate-500 uppercase font-bold mb-2 tracking-tighter">Build Progress</div>
                     <div className="flex items-end justify-between mb-1">
-                        <span className="text-xl font-bold text-white">42%</span>
-                        <span className="text-[10px] text-slate-400">Task 6/14</span>
+                        <span className="text-xl font-bold text-white">{progressPercent}%</span>
+                        <span className="text-[10px] text-slate-400">Task {completedCount}/{totalCount}</span>
                     </div>
-                    <Progress value={42} className="h-1.5 bg-slate-700" />
+                    <Progress value={progressPercent} className="h-1.5 bg-slate-700" />
                 </div>
 
                 <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors">
@@ -63,3 +85,4 @@ export function Sidebar() {
         </aside>
     )
 }
+

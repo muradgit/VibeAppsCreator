@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 
 export function ReviewPanel({ review, onCommit, onRegenerate, isCommitting }: { 
   review: CodeReview, 
-  onCommit: () => void, 
-  onRegenerate: () => void,
-  isCommitting: boolean
+  onCommit?: () => void, 
+  onRegenerate?: () => void,
+  isCommitting?: boolean
 }) {
   const isHealthy = review.score >= 90;
 
@@ -78,17 +78,39 @@ export function ReviewPanel({ review, onCommit, onRegenerate, isCommitting }: {
         <div className="pt-6 border-t flex items-center justify-between">
             <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Final Verdict</span>
-                <p className="text-sm font-medium text-slate-800 italic">"The implementation matches architectural specifications with minor polish needed."</p>
+                <p className="text-sm font-medium text-slate-800 italic">"{review.verdict || "The implementation matches architectural specifications with minor polish needed."}"</p>
             </div>
-            <div className="flex items-center gap-4">
-                <Button variant="outline" onClick={onRegenerate} className="h-10 px-6 font-bold border-slate-200 hover:bg-slate-50 transition-all">
-                    <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
-                </Button>
-                <Button onClick={onCommit} disabled={isCommitting} className="h-10 px-6 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all">
-                    {isCommitting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
-                    Deploy to GitHub
-                </Button>
-            </div>
+            {(onCommit || onRegenerate) && (
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-4">
+                    {onRegenerate && (
+                      <Button variant="outline" onClick={onRegenerate} className="h-10 px-6 font-bold border-slate-200 hover:bg-slate-50 transition-all">
+                          <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
+                      </Button>
+                    )}
+                    {onCommit && (
+                      <Button onClick={onCommit} disabled={isCommitting} className="h-10 px-6 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all">
+                          {isCommitting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
+                          Deploy to GitHub
+                      </Button>
+                    )}
+                </div>
+                {review.score < 90 && onCommit && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(
+                        `Score is ${review.score}/100. The code has quality issues. Are you sure you want to commit it anyway?`
+                      )) {
+                        onCommit();
+                      }
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                  >
+                    Commit anyway (override)
+                  </button>
+                )}
+              </div>
+            )}
         </div>
       </CardContent>
     </Card>

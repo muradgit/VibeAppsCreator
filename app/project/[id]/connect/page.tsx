@@ -27,23 +27,37 @@ export default function ProjectConnectPage() {
         if (res.ok) setProject(await res.json());
     };
     fetchProject();
-    
-    const savedKey = localStorage.getItem("GEMINI_API_KEY");
-    if (savedKey) setGeminiKey(savedKey);
   }, [id]);
 
-  const saveGeminiKey = () => {
+  const saveGeminiKey = async () => {
     setIsSavingKey(true);
-    localStorage.setItem("GEMINI_API_KEY", geminiKey);
-    setTimeout(() => {
-        setIsSavingKey(false);
-        toast.success("Gemini API key saved to local storage");
-    }, 500);
+    try {
+      const res = await fetch("/api/gemini/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: geminiKey, projectId: id })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to save Gemini key");
+      }
+
+      toast.success("Gemini API key verified and saved securely");
+      
+      // Refresh project to get updated isGeminiDone status
+      const pRes = await fetch(`/api/projects/${id}`);
+      if (pRes.ok) setProject(await pRes.json());
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSavingKey(false);
+    }
   };
 
   const isGithubDone = !!project?.github_repo;
   const isVercelDone = !!project?.vercel_project_id;
-  const isGeminiDone = geminiKey.length > 20;
+  const isGeminiDone = !!project?.gemini_token_encrypted;
 
   const canStartBuilding = isGithubDone && isVercelDone && isGeminiDone;
 
@@ -94,7 +108,8 @@ export default function ProjectConnectPage() {
                             onClick={saveGeminiKey}
                             disabled={isSavingKey}
                         >
-                            {isSavingKey ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Locally"}
+                            {isSavingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            {isGeminiDone ? "Update & Verify" : "Verify & Save"}
                         </Button>
                     </CardContent>
                 </Card>
@@ -138,7 +153,7 @@ export default function ProjectConnectPage() {
                 <div className="space-y-1">
                     <h4 className="text-sm font-bold text-white uppercase tracking-widest">End-to-End Encryption</h4>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                        ABBA uses AES-256-GCM encryption for transmission. Your Gemini API key never leaves your browser's local storage and is only used to fulfill AI requests initiated by your active session.
+                        ABBA uses AES-256-GCM encryption for transmission and storage. Your Gemini API key is encrypted server-side and is only used to fulfill AI requests initiated by your active session.
                     </p>
                 </div>
             </div>

@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
+import { CompletionScreen } from "@/components/tasks/CompletionScreen";
+
 export function TaskAutomationDashboard({ initialTasks, initialProject, onRefresh }: { 
     initialTasks: any[], 
     initialProject: any,
@@ -42,6 +44,11 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
 
   const activeTask = tasks.find(t => t.id === activeTaskId);
   const nextTask = tasks.find(t => t.status === 'pending');
+  const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
+
+  if (allDone) {
+    return <CompletionScreen project={initialProject} tasks={tasks} />;
+  }
 
   const handleCommit = async () => {
     if (!activeTask) return;
@@ -86,9 +93,7 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-            <aside className="w-[380px] border-r bg-slate-50 dark:bg-slate-900/50 flex flex-col shrink-0">
-                <TaskList tasks={tasks} />
-            </aside>
+            <TaskList tasks={tasks} />
 
             <main className="flex-1 overflow-y-auto p-8 space-y-8 bg-white dark:bg-slate-950">
                 {activeTask ? (

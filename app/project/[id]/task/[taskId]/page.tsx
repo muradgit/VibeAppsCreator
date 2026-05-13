@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptViewer } from "@/components/code/PromptViewer";
 import { CodeViewer } from "@/components/code/CodeViewer";
-import { ReviewPanel } from "@/components/tasks/ReviewPanel";
+import { ReviewPanel } from "@/components/code/ReviewPanel";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";

@@ -2,8 +2,7 @@
 
 import { useProjectStore } from "@/store/project.store";
 import { Task } from "@/types";
-import { cn } from "@/lib/utils";
-import { CheckCircle2, ChevronRight, Circle, Loader2 } from "lucide-react";
+import { TaskCard } from "./TaskCard";
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
   const { activeTaskId, setActiveTask } = useProjectStore();
@@ -19,47 +18,16 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {tasks.map((task, idx) => {
-          const isActive = activeTaskId === task.id;
-          const isDone = task.status === 'done';
-          const isInProgress = task.status === 'in_progress';
-
-          return (
-            <button
-              key={task.id}
-              onClick={() => setActiveTask(task.id)}
-              className={cn(
-                "w-full text-left p-4 rounded-xl border-l-4 transition-all flex items-start justify-between group",
-                isActive 
-                    ? "bg-white border-blue-500 shadow-md ring-2 ring-blue-500/10" 
-                    : isDone
-                        ? "bg-white border-emerald-500 shadow-sm"
-                        : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
-              )}
-            >
-              <div className="space-y-1">
-                <div className={cn(
-                    "text-[10px] font-bold uppercase",
-                    isActive ? "text-blue-500" : "text-slate-400"
-                )}>
-                    Task #{idx + 1} {isInProgress && "— In Progress"}
-                </div>
-                <h4 className={cn("text-sm font-bold", isActive ? "text-slate-900" : "text-slate-700")}>
-                    {task.title}
-                </h4>
-              </div>
-              
-              {isDone ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-              ) : isInProgress ? (
-                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400" />
-              )}
-            </button>
-          );
-        })}
+        {tasks.map((task) => (
+          <TaskCard 
+            key={task.id} 
+            task={task} 
+            isActive={activeTaskId === task.id} 
+            onClick={() => setActiveTask(task.id)} 
+          />
+        ))}
       </div>
     </div>
   );
 }
+

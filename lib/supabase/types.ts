@@ -24,6 +24,7 @@ export type Database = {
           vercel_project_id: string | null
           github_token_encrypted: string | null
           vercel_token_encrypted: string | null
+          gemini_token_encrypted: string | null
           created_at: string
           updated_at: string
         }
