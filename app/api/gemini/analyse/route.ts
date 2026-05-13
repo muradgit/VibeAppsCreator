@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/authOptions";
 import { getGeminiModel } from "@/lib/gemini/client";
 import { ANALYSIS_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { AnalysisResponseSchema } from "@/lib/gemini/schema";

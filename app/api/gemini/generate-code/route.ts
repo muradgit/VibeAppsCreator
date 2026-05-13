@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/authOptions";
 import { getGeminiModel } from "@/lib/gemini/client";
 import { CODE_GENERATOR_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { supabase } from "@/lib/supabase/client";

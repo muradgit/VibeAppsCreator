@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/authOptions";
 import { VercelClient } from "@/lib/vercel/client";
 import { encryptToken } from "@/lib/utils";
 import { supabase } from "@/lib/supabase/client";
