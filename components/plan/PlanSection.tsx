@@ -46,8 +46,8 @@ export function PlanSection({ title, items, type, projectId }: PlanSectionProps)
                         <h4 className="text-sm font-bold text-slate-900">{item.title}</h4>
                         <span className={cn(
                             "text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded",
-                            item.estimatedComplexity === 'easy' ? 'bg-emerald-100 text-emerald-700' :
-                            item.estimatedComplexity === 'hard' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                            item.estimatedComplexity === 'low' ? 'bg-emerald-100 text-emerald-700' :
+                            item.estimatedComplexity === 'high' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                         )}>
                             {item.estimatedComplexity}
                         </span>

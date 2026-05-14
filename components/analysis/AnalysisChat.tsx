@@ -5,7 +5,7 @@ import { AnalysisMessage } from "./AnalysisMessage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, Wand2, BrainCircuit } from "lucide-react";
+import { Loader2, Send, Wand2, BrainCircuit, AlertTriangle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +18,11 @@ interface Question {
 interface AnalysisData {
   summary: string;
   inconsistencies: string[];
+  similarProducts: {
+    name: string;
+    url: string;
+    description: string;
+  }[];
   questions: Question[];
 }
 
@@ -120,7 +125,51 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950">
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {messages.map((m, i) => (
-          <AnalysisMessage key={i} role={m.role} content={m.content} timestamp={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+          <div key={i} className="space-y-6">
+            <AnalysisMessage role={m.role} content={m.content} timestamp={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+            
+            {/* If it's the first assistant message (summary), show inconsistencies and competitors */}
+            {i === 0 && m.role === "assistant" && analysisData && (
+              <div className="space-y-6 ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
+                {analysisData.inconsistencies.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest pl-2">Detected Inconsistencies</h4>
+                    <div className="space-y-2">
+                      {analysisData.inconsistencies.map((inc, idx) => (
+                        <div key={idx} className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3 text-xs font-medium text-amber-900">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                          {inc}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {analysisData.similarProducts.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest pl-2">Market Landscape</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {analysisData.similarProducts.map((prod, idx) => (
+                        <a 
+                          key={idx} 
+                          href={prod.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-all group"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-black text-slate-900 uppercase tracking-tight">{prod.name}</span>
+                            <ExternalLink className="h-3 w-3 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-tight">{prod.description}</p>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         ))}
         {!allAnswered && analysisData && (
           <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">

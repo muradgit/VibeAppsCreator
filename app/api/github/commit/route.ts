@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       owner,
       repo,
       files,
-      commitMessage: `chore: implement task "${task.title}"`
+      commitMessage: `[ABBA] Task #${task.sequence_number}: ${task.title}`
     });
 
     const commitSha = result[0]?.sha || "unknown";
@@ -44,6 +44,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, commitSha });
   } catch (error: any) {
+    if (error.status === 403 || error.status === 429) {
+      return NextResponse.json(
+        { error: "GitHub rate limit reached. Please wait 60 seconds and try again.", rateLimited: true },
+        { status: 429 }
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

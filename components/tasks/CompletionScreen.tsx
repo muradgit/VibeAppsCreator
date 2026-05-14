@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Github, Rocket, ArrowLeft, Trophy, Calendar, Zap } from "lucide-react";
+import { CheckCircle2, Github, Rocket, ArrowLeft, Trophy, Calendar, Zap, FileDown } from "lucide-react";
 import Link from "next/link";
 import { Project, Task } from "@/types";
 
@@ -37,12 +37,33 @@ export function CompletionScreen({ project, tasks }: CompletionScreenProps) {
     return () => clearInterval(interval);
   }, []);
 
+  const exportReport = () => {
+    const watermark = `# Build Report: ${project.name}\nCompleted: ${new Date().toLocaleDateString()}\n\n---\n\n`;
+    const description = `## Project Description\n${(project as any).plan?.description || project.idea_raw}\n\n`;
+    const taskList = `## Tasks Completed\n${tasks.map(t => `- [x] ${t.title} (Commit: ${t.github_commit_sha || 'local' })`).join('\n')}\n`;
+    
+    const markdownContent = watermark + description + taskList;
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name.toLowerCase().replace(/\s+/g, '-')}-report.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const githubPushes = tasks.filter(t => t.github_commit_sha).length;
   const completedDate = new Date().toLocaleDateString('en-US', { 
     month: 'long', 
     day: 'numeric', 
     year: 'numeric' 
   });
+
+  const vercelUrl = (project as any).vercel_project_id 
+    ? `https://vercel.com/${(project as any).vercel_project_id}` 
+    : "https://vercel.com/dashboard";
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-950 relative overflow-hidden">
@@ -83,13 +104,21 @@ export function CompletionScreen({ project, tasks }: CompletionScreenProps) {
           <Button 
             size="lg" 
             className="h-14 px-10 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-600/20 w-full sm:w-auto"
-            onClick={() => window.open('https://vercel.com/dashboard', '_blank')}
+            onClick={() => window.open(vercelUrl, '_blank')}
           >
             <Rocket className="mr-3 h-5 w-5" /> View on Vercel
           </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="h-14 px-10 rounded-2xl border-white/10 text-white hover:bg-white/5 font-black text-lg w-full sm:w-auto"
+            onClick={exportReport}
+          >
+            <FileDown className="mr-3 h-5 w-5" /> Export Report
+          </Button>
           <Link href="/dashboard" className="w-full sm:w-auto">
-            <Button size="lg" variant="outline" className="h-14 px-10 rounded-2xl border-white/10 text-white hover:bg-white/5 font-black text-lg w-full sm:w-auto">
-              <ArrowLeft className="mr-3 h-5 w-5" /> Back to Dashboard
+            <Button size="lg" variant="ghost" className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 font-bold w-full sm:w-auto">
+              <ArrowLeft className="mr-3 h-5 w-5" /> Exit
             </Button>
           </Link>
         </div>

@@ -24,12 +24,32 @@ export function ReviewPanel({ review, onCommit, onRegenerate, isCommitting }: {
                 </CardDescription>
                 <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">AI Code Review Report</CardTitle>
             </div>
-            <div className={cn(
-                "p-4 rounded-2xl flex flex-col items-center justify-center min-w-[100px]",
-                isHealthy ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-            )}>
-                <span className="text-[10px] font-bold uppercase tracking-tighter mb-1">Quality Score</span>
-                <span className="text-4xl font-black">{review.score}</span>
+            <div className="relative w-20 h-20 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                        cx="40"
+                        cy="40"
+                        r="28"
+                        fill="transparent"
+                        stroke="#f1f5f9"
+                        strokeWidth="6"
+                    />
+                    <circle
+                        cx="40"
+                        cy="40"
+                        r="28"
+                        fill="transparent"
+                        stroke={review.score >= 90 ? "#10B981" : review.score >= 70 ? "#F59E0B" : "#EF4444"}
+                        strokeWidth="6"
+                        strokeDasharray={175.9}
+                        strokeDashoffset={175.9 * (1 - review.score / 100)}
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl font-black text-slate-800">{review.score}</span>
+                </div>
             </div>
         </div>
       </CardHeader>

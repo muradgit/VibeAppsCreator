@@ -44,7 +44,7 @@ export const PlanResponseSchema = z.object({
       description: z.string(),
       acceptanceCriteria: z.array(z.string()),
       filePaths: z.array(z.string()),
-      estimatedComplexity: z.enum(["easy", "medium", "hard"]),
+      estimatedComplexity: z.enum(["low", "medium", "high"]),
       dependsOn: z.array(z.string())
     }))
   }))

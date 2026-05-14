@@ -57,16 +57,14 @@ export function IdeaForm() {
     }
     setIsEnhancing(true);
     try {
-        // This would call a specialized enhancement route or the analysis route
-        // For simplicity as per request, just simulate or call analysis
-        const res = await fetch("/api/gemini/analyse", {
+        const res = await fetch("/api/gemini/enhance", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ideaRaw: ideaText, projectId: "temp" }) 
+            body: JSON.stringify({ ideaRaw: ideaText }) 
         });
         if (!res.ok) throw new Error("Enhancement failed");
         const data = await res.json();
-        setValue("idea", data.summary);
+        setValue("idea", data.enhanced);
         toast.success("Idea enhanced by AI");
     } catch (error: any) {
         toast.error(error.message);

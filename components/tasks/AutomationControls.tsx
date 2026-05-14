@@ -18,42 +18,58 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
     const [status, setStatus] = useState<"idle" | "prompting" | "coding" | "reviewing" | "committing">("idle");
     const [automationMode, setAutomationMode] = useState<"manual" | "semi" | "full">("semi");
 
-    const runSequence = async () => {
+    const runSequence = async (resumeFromStep?: number, resumePrompt?: string) => {
         if (!nextTask) {
             toast.info("All tasks completed");
             return;
         }
 
-        // BUG 6: Check dependencies are all done
-        if (nextTask.dependencies && nextTask.dependencies.length > 0) {
-            const allTasks = useProjectStore.getState().tasks;
-            const unmetDeps = nextTask.dependencies.filter((depId: string) => {
-                const depTask = allTasks.find((t: any) => t.id === depId);
-                return !depTask || depTask.status !== 'done';
-            });
-            if (unmetDeps.length > 0) {
-                toast.warning(`Task "${nextTask.title}" is waiting for ${unmetDeps.length} dependency/dependencies to complete first.`);
-                pauseAutomation();
-                setStatus("idle");
-                return;
+        const step = resumeFromStep || 1;
+
+        if (step === 1) {
+            // BUG 6: Check dependencies are all done
+            if (nextTask.dependencies && nextTask.dependencies.length > 0) {
+                const allTasks = useProjectStore.getState().tasks;
+                const unmetDeps = nextTask.dependencies.filter((depId: string) => {
+                    const depTask = allTasks.find((t: any) => t.id === depId);
+                    return !depTask || depTask.status !== 'done';
+                });
+                if (unmetDeps.length > 0) {
+                    toast.warning(`Task "${nextTask.title}" is waiting for ${unmetDeps.length} dependency/dependencies to complete first.`);
+                    pauseAutomation();
+                    setStatus("idle");
+                    return;
+                }
             }
         }
         
         try {
             startAutomation();
-            clearStreamingCode();
-
-            // 1. Generate Prompt
-            setStatus("prompting");
-            const promptRes = await fetch("/api/gemini/generate-prompt", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ taskId: nextTask.id, projectId })
-            });
-            if (!promptRes.ok) throw new Error("Prompt generation failed");
-            const { prompt } = await promptRes.json();
             
+            let prompt = resumePrompt || "";
+
+            if (step <= 1) {
+                // 1. Generate Prompt
+                setStatus("prompting");
+                const promptRes = await fetch("/api/gemini/generate-prompt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ taskId: nextTask.id, projectId })
+                });
+                if (!promptRes.ok) throw new Error("Prompt generation failed");
+                const data = await promptRes.json();
+                prompt = data.prompt;
+                
+                // BUG 6: Pause after prompt generation
+                toast.info("Task prompt generated. Review needed before construction.");
+                setStatus("idle");
+                pauseAutomation();
+                onRefresh();
+                return;
+            }
+
             // 2. Generate Code (Streaming)
+            clearStreamingCode();
             setStatus("coding");
             const codeRes = await fetch("/api/gemini/generate-code", {
                 method: "POST",
@@ -100,6 +116,15 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
                 return;
             }
 
+            // BUG 5: Manual/Semi mode pausing
+            if (automationMode === 'manual' || automationMode === 'semi') {
+                pauseAutomation();
+                setStatus("idle");
+                onRefresh();
+                toast.success("Review complete — approve to commit");
+                return;
+            }
+
             if (review.score >= 90 && automationMode === "full") {
                 // 4. Auto-commit
                 setStatus("committing");
@@ -126,6 +151,13 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
         }
     };
 
+    // Resuming from dashboard via prompt submission
+    (window as any).resumeAutomation = (taskId: string, prompt: string) => {
+        if (nextTask?.id === taskId) {
+            runSequence(2, prompt);
+        }
+    };
+
     return (
         <div className="flex items-center gap-4 p-4 bg-slate-900 border border-white/5 rounded-2xl shadow-2xl">
             <div className="flex gap-1 p-1 bg-slate-950 rounded-xl border border-white/5">
@@ -146,7 +178,7 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             <div className="h-8 w-px bg-white/10" />
 
             <Button
-                onClick={runSequence}
+                onClick={() => runSequence()}
                 disabled={status !== "idle" || !nextTask}
                 className={cn(
                     "flex-1 h-11 font-black transition-all",

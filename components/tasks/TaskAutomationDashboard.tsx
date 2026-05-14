@@ -6,6 +6,7 @@ import { Task, Project } from "@/types";
 import { TaskList } from "@/components/tasks/TaskList";
 import { StreamingCode } from "@/components/code/StreamingCode";
 import { ReviewPanel } from "@/components/code/ReviewPanel";
+import { PromptViewer } from "@/components/code/PromptViewer";
 import { AutomationControls } from "@/components/tasks/AutomationControls";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, FileCode, Check, Loader2, ArrowRight } from "lucide-react";
@@ -50,6 +51,12 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
     return <CompletionScreen project={initialProject} tasks={tasks} />;
   }
 
+  const triggerCodeGeneration = (taskId: string, prompt: string) => {
+    if ((window as any).resumeAutomation) {
+      (window as any).resumeAutomation(taskId, prompt);
+    }
+  };
+
   const handleCommit = async () => {
     if (!activeTask) return;
     setIsSyncing(true);
@@ -59,7 +66,29 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ taskId: activeTask.id, projectId: initialProject.id })
         });
-        if (!res.ok) throw new Error("Commit failed");
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          if (data.rateLimited) {
+            let timeLeft = 60;
+            const toastId = toast.error(`GitHub rate limit reached. Retrying in ${timeLeft}s...`, { duration: 61000 });
+            
+            const interval = setInterval(() => {
+              timeLeft -= 1;
+              if (timeLeft <= 0) {
+                clearInterval(interval);
+                toast.dismiss(toastId);
+                handleCommit(); // Auto-retry when countdown ends
+              } else {
+                toast.error(`GitHub rate limit reached. Retrying in ${timeLeft}s...`, { id: toastId });
+              }
+            }, 1000);
+            return;
+          }
+          throw new Error(data.error || "Commit failed");
+        }
+        
         toast.success("Changes committed to GitHub");
         onRefresh();
     } catch (error: any) {
@@ -152,7 +181,18 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
                         </div>
 
                         <div className="mt-8 space-y-8">
-                            {isRunning || Object.keys(streamingCode).length > 0 ? (
+                            {activeTask.generated_prompt && activeTask.status === 'pending' && !isRunning && (
+                              <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Constructing Blueprint</h4>
+                                <PromptViewer 
+                                  prompt={activeTask.generated_prompt} 
+                                  onSend={(prompt) => triggerCodeGeneration(activeTask.id, prompt)} 
+                                  isGenerating={isRunning}
+                                />
+                              </div>
+                            )}
+
+                            {(isRunning || Object.keys(streamingCode).length > 0) && activeTask.status !== 'pending' ? (
                                 <div className="space-y-4">
                                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Logic Streaming Output</h4>
                                     <StreamingCode codeFiles={streamingCode} isStreaming={isRunning} />

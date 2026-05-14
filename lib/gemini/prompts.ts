@@ -49,7 +49,7 @@ Return ONLY a valid JSON object matching this schema:
           "description": "Detailed task instructions",
           "acceptanceCriteria": ["check 1", "check 2"],
           "filePaths": ["/path/to/files/affected"],
-          "estimatedComplexity": "easy" | "medium" | "hard",
+          "estimatedComplexity": "low" | "medium" | "high",
           "dependsOn": ["list of other task IDs"]
         }
       ]
