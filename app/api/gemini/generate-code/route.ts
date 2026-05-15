@@ -5,6 +5,8 @@ import { CODE_GENERATOR_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { parseGeneratedFiles } from "@/lib/gemini/parseGeneratedFiles";
 import { supabase } from "@/lib/supabase/client";
 
+const NO_FILES_GENERATED_SIGNAL = "__VIBE_ERROR__:NO_FILES_GENERATED";
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -56,6 +58,10 @@ export async function POST(req: Request) {
             .update({ status: "failed", retry_count: task.retry_count + 1 })
             .eq("id", taskId)
             .eq("project_id", projectId);
+
+          controller.enqueue(
+            new TextEncoder().encode(`\n${NO_FILES_GENERATED_SIGNAL}`)
+          );
           controller.close();
           return;
         }

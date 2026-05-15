@@ -48,7 +48,11 @@ Generated Code: ${JSON.stringify(task.generated_code)}`;
     const validated = ReviewResponseSchema.parse(review);
 
     const nextRetryCount = validated.score >= 90 ? task.retry_count : task.retry_count + 1;
-    const nextStatus = nextRetryCount >= 3 && validated.score < 90 ? "failed" : "review";
+    const nextStatus = validated.score >= 90
+      ? "review"
+      : nextRetryCount >= 3
+        ? "failed"
+        : "pending";
 
     await (supabase as any)
       .from("tasks")
