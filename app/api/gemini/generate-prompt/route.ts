@@ -15,8 +15,19 @@ export async function POST(req: Request) {
     const { taskId, projectId } = await req.json();
 
     // Fetch task and project
-    const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
-    const { data: project } = await (supabase as any).from("projects").select("*").eq("id", projectId).single();
+    const { data: project } = await (supabase as any)
+      .from("projects")
+      .select("*")
+      .eq("id", projectId)
+      .eq("user_id", session.user.id)
+      .single();
+
+    const { data: task } = await (supabase as any)
+      .from("tasks")
+      .select("*")
+      .eq("id", taskId)
+      .eq("project_id", projectId)
+      .single();
 
     if (!task || !project) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -48,7 +59,11 @@ ${codeSummary}`;
 
     const prompt = result.response.text();
 
-    await (supabase as any).from("tasks").update({ generated_prompt: prompt }).eq("id", taskId);
+    await (supabase as any)
+      .from("tasks")
+      .update({ generated_prompt: prompt })
+      .eq("id", taskId)
+      .eq("project_id", projectId);
 
     return NextResponse.json({ prompt });
   } catch (error: any) {
