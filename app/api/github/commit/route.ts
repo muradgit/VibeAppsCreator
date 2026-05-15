@@ -11,33 +11,10 @@ export async function POST(req: Request) {
 
   const { taskId, projectId } = await req.json();
 
-  const { data: project } = await (supabase as any)
-    .from("projects")
-    .select("*")
-    .eq("id", projectId)
-    .eq("user_id", session.user.id)
-    .single();
+  const { data: project } = await (supabase as any).from("projects").select("*").eq("id", projectId).single();
+  const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
 
-  if (!project) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  const { data: task } = await (supabase as any)
-    .from("tasks")
-    .select("*")
-    .eq("id", taskId)
-    .eq("project_id", projectId)
-    .single();
-
-  if (!task) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  if (!["review", "pending"].includes(task.status)) {
-    return NextResponse.json({ error: "Task is not ready to commit" }, { status: 400 });
-  }
-
-  if (!project.github_token_encrypted || !project.github_repo) {
+  if (!project?.github_token_encrypted || !project.github_repo) {
     return NextResponse.json({ error: "GitHub not configured for this project" }, { status: 400 });
   }
 
