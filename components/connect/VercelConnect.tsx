@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,10 +25,32 @@ export function VercelConnect({
     const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
     useEffect(() => {
+        setIsConnected(initialIsConnected);
+    }, [initialIsConnected]);
+
+    useEffect(() => {
+        setSelectedProject(initialProjectId);
+    }, [initialProjectId]);
+
+    const fetchVercelProjects = useCallback(async () => {
+        setIsLoadingProjects(true);
+        try {
+            const res = await fetch(`/api/vercel/projects?projectId=${projectId}`);
+            if (!res.ok) throw new Error("Failed to fetch Vercel projects");
+            const data = await res.json();
+            setProjects(data);
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsLoadingProjects(false);
+        }
+    }, [projectId]);
+
+    useEffect(() => {
         if (isConnected) {
             fetchVercelProjects();
         }
-    }, [isConnected]);
+    }, [isConnected, fetchVercelProjects]);
 
     const handleConnect = async () => {
         if (!token) {
@@ -54,20 +76,6 @@ export function VercelConnect({
             toast.error(error.message);
         } finally {
             setIsConnecting(false);
-        }
-    };
-
-    const fetchVercelProjects = async () => {
-        setIsLoadingProjects(true);
-        try {
-            const res = await fetch(`/api/vercel/projects?projectId=${projectId}`);
-            if (!res.ok) throw new Error("Failed to fetch Vercel projects");
-            const data = await res.json();
-            setProjects(data);
-        } catch (error: any) {
-            toast.error(error.message);
-        } finally {
-            setIsLoadingProjects(false);
         }
     };
 

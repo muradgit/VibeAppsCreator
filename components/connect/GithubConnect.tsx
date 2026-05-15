@@ -26,10 +26,32 @@ export function GithubConnect({
     const [isLoadingRepos, setIsLoadingRepos] = useState(false);
 
     useEffect(() => {
+        setIsConnected(initialIsConnected);
+    }, [initialIsConnected]);
+
+    useEffect(() => {
+        setSelectedRepo(initialRepoName);
+    }, [initialRepoName]);
+
+    const fetchRepos = useCallback(async () => {
+        setIsLoadingRepos(true);
+        try {
+            const res = await fetch(`/api/github/repos?projectId=${projectId}`);
+            if (!res.ok) throw new Error("Failed to fetch repositories");
+            const data = await res.json();
+            setRepos(data);
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsLoadingRepos(false);
+        }
+    }, [projectId]);
+
+    useEffect(() => {
         if (isConnected) {
             fetchRepos();
         }
-    }, [isConnected]);
+    }, [isConnected, fetchRepos]);
 
     const handleConnect = async () => {
         if (!token) {
@@ -55,20 +77,6 @@ export function GithubConnect({
             toast.error(error.message);
         } finally {
             setIsConnecting(false);
-        }
-    };
-
-    const fetchRepos = async () => {
-        setIsLoadingRepos(true);
-        try {
-            const res = await fetch(`/api/github/repos?projectId=${projectId}`);
-            if (!res.ok) throw new Error("Failed to fetch repositories");
-            const data = await res.json();
-            setRepos(data);
-        } catch (error: any) {
-            toast.error(error.message);
-        } finally {
-            setIsLoadingRepos(false);
         }
     };
 

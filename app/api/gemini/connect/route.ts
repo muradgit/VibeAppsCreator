@@ -21,10 +21,28 @@ export async function POST(req: Request) {
     // 1. Validate the key with a small test call
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use a stable model for validation
+      // Try with gemini-1.5-flash first
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
       await model.generateContent("test");
     } catch (err: any) {
-      return NextResponse.json({ error: "Invalid Gemini API Key: " + err.message }, { status: 400 });
+      const msg = err.message || "";
+      const isQuotaError = msg.includes("Quota exceeded") || msg.includes("429");
+      const isInvalidKey = msg.includes("API_KEY_INVALID") || msg.includes("401") || msg.includes("403");
+      const isModelNotFoundError = msg.includes("404") || msg.includes("not found");
+      
+      // If the key is invalid, we MUST stop.
+      if (isInvalidKey) {
+        return NextResponse.json({ error: "Invalid Gemini API Key" }, { status: 400 });
+      }
+      
+      // If it's a quota error OR model not found error, it's NOT an "invalid key" per se.
+      // It's a system/limit error. We allow saving because the user's key might be right.
+      if (isQuotaError || isModelNotFoundError) {
+          console.log("Gemini validation bypassed due to quota or model mismatch:", msg);
+      } else {
+        // For other errors, return the actual error
+        return NextResponse.json({ error: "Gemini Validation Error: " + msg }, { status: 400 });
+      }
     }
 
     // 2. Encrypt the key
