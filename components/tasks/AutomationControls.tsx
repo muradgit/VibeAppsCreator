@@ -159,15 +159,15 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
     };
 
     return (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-3 md:p-4 bg-slate-900 border border-white/5 rounded-xl md:rounded-2xl shadow-2xl">
-            <div className="flex gap-1 p-1 bg-slate-950 rounded-lg md:rounded-xl border border-white/5 overflow-x-auto shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-3 md:p-4 bg-white border border-purple-100 rounded-xl md:rounded-2xl shadow-lg shadow-purple-500/5">
+            <div className="flex gap-1 p-1 bg-purple-50 rounded-lg md:rounded-xl border border-purple-50 overflow-x-auto shrink-0 no-scrollbar">
                 {(["manual", "semi", "full"] as const).map((m) => (
                     <button
                         key={m}
                         onClick={() => setAutomationMode(m)}
                         className={cn(
                             "px-3 py-1.5 rounded-md md:rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                            automationMode === m ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-slate-500 hover:text-slate-300"
+                            automationMode === m ? "bg-primary text-white shadow-lg shadow-purple-500/20" : "text-slate-400 hover:text-slate-600"
                         )}
                     >
                         {m}
@@ -175,14 +175,14 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
                 ))}
             </div>
 
-            <div className="hidden sm:block h-8 w-px bg-white/10" />
+            <div className="hidden sm:block h-8 w-px bg-purple-50" />
 
             <Button
                 onClick={() => runSequence()}
                 disabled={status !== "idle" || !nextTask}
                 className={cn(
                     "flex-1 h-10 md:h-11 font-black transition-all text-xs md:text-sm truncate",
-                    status === "idle" ? "bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20" : "bg-slate-800 text-slate-400"
+                    status === "idle" ? "bg-primary hover:bg-primary/90 text-white shadow-xl shadow-purple-500/20" : "bg-slate-100 text-slate-400"
                 )}
             >
                 {status === "idle" ? (
@@ -193,9 +193,9 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             </Button>
 
             {status !== "idle" && (
-                <div className="flex items-center justify-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full animate-pulse">
-                    <Zap className="h-3 w-3 text-blue-400 fill-current" />
-                    <span className="text-[9px] md:text-[10px] font-bold text-blue-400 uppercase tracking-widest">{status}</span>
+                <div className="flex items-center justify-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
+                    <Zap className="h-3 w-3 text-primary fill-current" />
+                    <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-widest">{status}</span>
                 </div>
             )}
         </div>

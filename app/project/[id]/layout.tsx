@@ -8,7 +8,7 @@ export default function ProjectLayout({
   return (
     <>
         <Sidebar />
-        <main className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-950">
+        <main className="flex-1 flex flex-col bg-white">
             {children}
         </main>
     </>

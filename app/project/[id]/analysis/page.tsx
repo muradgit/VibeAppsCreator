@@ -14,23 +14,23 @@ export default function ProjectAnalysisPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-950"
+      className="flex-1 flex flex-col bg-white"
     >
-        <header className="h-16 px-6 flex items-center justify-between border-b bg-white dark:bg-slate-900 shrink-0">
+        <header className="h-16 px-6 flex items-center justify-between border-b bg-white shrink-0 sticky top-0 z-20">
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-purple-500/10">
                     <BrainCircuit className="h-5 w-5 text-white" />
                 </div>
-                <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">AI Requirements Analysis</h2>
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">AI Requirements Analysis</h2>
             </div>
             <div className="flex items-center gap-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest bg-purple-50 px-3 py-1 rounded-full border border-purple-100 italic">
                     Logical Synthesis Mode
                 </span>
             </div>
         </header>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1">
             <AnalysisChat projectId={id} />
         </div>
     </motion.div>

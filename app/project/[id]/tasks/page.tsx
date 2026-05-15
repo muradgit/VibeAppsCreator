@@ -37,8 +37,8 @@ export default function ProjectTasksPage() {
 
   if (isLoading) {
     return (
-        <div className="flex-1 flex items-center justify-center bg-slate-950">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="flex-1 flex items-center justify-center bg-white">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
     );
   }

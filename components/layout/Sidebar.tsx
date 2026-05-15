@@ -51,11 +51,11 @@ export function Sidebar() {
 
     const sidebarContent = (
         <aside className={cn(
-            "fixed inset-y-0 left-0 z-40 w-64 bg-[#0F172A] border-r border-white/5 flex flex-col justify-between py-6 transition-transform duration-300 md:static md:translate-x-0 md:h-[calc(100vh-60px)]",
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-purple-50 flex flex-col justify-between py-6 transition-transform duration-300 md:static md:translate-x-0 md:h-[calc(100vh-60px)]",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full shadow-2xl md:shadow-none"
         )}>
             <div className="space-y-1">
-                <div className="px-6 mb-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Main Workflow</div>
+                <div className="px-6 mb-4 text-[11px] font-black text-purple-400 uppercase tracking-widest">Main Workflow</div>
                 
                 {navItems.map(item => {
                     const href = `/project/${projectId}/${item.href}`;
@@ -65,12 +65,12 @@ export function Sidebar() {
                             <div className={cn(
                                 "flex items-center gap-3 px-6 py-3 md:py-2.5 transition-all group border-r-4",
                                 isActive 
-                                    ? "text-white bg-blue-600/10 border-blue-500" 
-                                    : "text-slate-400 hover:text-white border-transparent"
+                                    ? "text-primary bg-purple-50 border-primary" 
+                                    : "text-slate-500 hover:text-primary hover:bg-purple-50/50 border-transparent"
                             )}>
-                                <span className={cn("text-[10px] font-mono", isActive ? "text-blue-400" : "text-slate-600")}>{item.step}</span>
-                                <item.icon className={cn("h-4 w-4", isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")} />
-                                <span className={cn("text-sm", isActive ? "font-semibold" : "font-medium")}>{item.label}</span>
+                                <span className={cn("text-[10px] font-mono", isActive ? "text-primary" : "text-slate-400")}>{item.step}</span>
+                                <item.icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-slate-400 group-hover:text-primary transition-colors")} />
+                                <span className={cn("text-sm", isActive ? "font-bold" : "font-medium")}>{item.label}</span>
                             </div>
                         </Link>
                     )
@@ -78,16 +78,16 @@ export function Sidebar() {
             </div>
 
             <div className="px-6 space-y-6">
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-2 tracking-tighter">Build Progress</div>
+                <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+                    <div className="text-[10px] text-purple-400 uppercase font-black mb-2 tracking-tighter">Build Progress</div>
                     <div className="flex items-end justify-between mb-1">
-                        <span className="text-xl font-bold text-white">{progressPercent}%</span>
-                        <span className="text-[10px] text-slate-400">Task {completedCount}/{totalCount}</span>
+                        <span className="text-xl font-black text-slate-900">{progressPercent}%</span>
+                        <span className="text-[10px] font-bold text-slate-500">Task {completedCount}/{totalCount}</span>
                     </div>
-                    <Progress value={progressPercent} className="h-1.5 bg-slate-700" />
+                    <Progress value={progressPercent} className="h-1.5 bg-white" />
                 </div>
 
-                <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors" onClick={handleLinkClick}>
+                <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors" onClick={handleLinkClick}>
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Projects</span>
                 </Link>

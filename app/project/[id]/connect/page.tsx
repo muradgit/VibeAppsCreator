@@ -62,14 +62,14 @@ export default function ProjectConnectPage() {
   const canStartBuilding = isGithubDone && isVercelDone && isGeminiDone;
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-950 p-8">
+    <div className="flex-1 overflow-y-auto bg-white p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-12">
             <header className="space-y-4 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
                     <Network className="h-3 w-3" /> System Integration
                 </div>
-                <h1 className="text-4xl font-black text-white tracking-tight">Connect External Logic</h1>
-                <p className="text-slate-400 text-sm max-w-xl mx-auto">
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight">Connect External Logic</h1>
+                <p className="text-slate-500 text-sm max-w-xl mx-auto font-medium">
                     ABBA requires access to these services to automate your build. Tokens are encrypted server-side (GitHub/Vercel) or stored locally (Gemini).
                 </p>
             </header>
@@ -81,30 +81,30 @@ export default function ProjectConnectPage() {
                 <div className="md:col-span-1">
                     <VercelConnect projectId={id} />
                 </div>
-                <Card className="border-white/5 bg-slate-900/50">
+                <Card className="border-purple-100 bg-white shadow-lg shadow-purple-500/5">
                     <CardHeader>
-                        <CardTitle className="text-white flex items-center gap-2">
+                        <CardTitle className="text-slate-900 flex items-center gap-2">
                              <Key className="h-5 w-5" /> Gemini API Core
                              {isGeminiDone && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                         </CardTitle>
-                        <CardDescription className="text-slate-400">
+                        <CardDescription className="text-slate-500 font-medium">
                             Required for AI logic generation and automated code reviews.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">API Key</Label>
+                            <Label className="text-slate-700">API Key</Label>
                             <Input 
                                 type="password" 
                                 value={geminiKey} 
                                 onChange={(e) => setGeminiKey(e.target.value)} 
                                 placeholder="AIzaSy..." 
-                                className="bg-slate-950 border-white/10 text-white"
+                                className="bg-purple-50/30 border-purple-100 text-slate-900"
                             />
                         </div>
                         <Button 
                             variant="secondary" 
-                            className="w-full h-9 font-bold" 
+                            className="w-full h-9 font-bold bg-slate-100 hover:bg-slate-200" 
                             onClick={saveGeminiKey}
                             disabled={isSavingKey}
                         >
@@ -115,7 +115,7 @@ export default function ProjectConnectPage() {
                 </Card>
             </div>
 
-            <div className="flex flex-col items-center gap-6 pt-12 border-t border-white/5">
+            <div className="flex flex-col items-center gap-6 pt-12 border-t border-purple-50">
                 <Button 
                     size="lg"
                     disabled={!canStartBuilding}
@@ -123,36 +123,36 @@ export default function ProjectConnectPage() {
                     className={cn(
                         "h-14 px-12 rounded-2xl font-black text-lg transition-all",
                         canStartBuilding 
-                            ? "bg-blue-600 hover:bg-blue-700 shadow-2xl shadow-blue-500/40 hover:scale-105" 
-                            : "bg-slate-800 text-slate-500 cursor-not-allowed grayscale"
+                            ? "bg-primary hover:bg-primary/90 shadow-2xl shadow-purple-500/40 hover:scale-105" 
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed grayscale"
                     )}
                 >
-                    <Rocket className="mr-3 h-6 w-6" /> Start Automation Loop
+                    <Rocket className="mr-3 h-6 w-6 text-white" /> Start Automation Loop
                 </Button>
                 
-                <div className="flex gap-8 text-slate-500">
-                    <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full", isGithubDone ? "bg-emerald-500" : "bg-slate-700")} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">GitHub</span>
+                <div className="flex gap-8 text-slate-500 overflow-x-auto w-full justify-center no-scrollbar">
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className={cn("w-2 h-2 rounded-full", isGithubDone ? "bg-emerald-500" : "bg-slate-200")} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">GitHub</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full", isVercelDone ? "bg-emerald-500" : "bg-slate-700")} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Vercel</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className={cn("w-2 h-2 rounded-full", isVercelDone ? "bg-emerald-500" : "bg-slate-200")} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Vercel</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full", isGeminiDone ? "bg-emerald-500" : "bg-slate-700")} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Gemini</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className={cn("w-2 h-2 rounded-full", isGeminiDone ? "bg-emerald-500" : "bg-slate-200")} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Gemini</span>
                     </div>
                 </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                    <Shield className="h-5 w-5 text-blue-500" />
+            <div className="p-6 rounded-2xl bg-purple-50/50 border border-purple-100 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Shield className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">End-to-End Encryption</h4>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest">End-to-End Encryption</h4>
+                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
                         ABBA uses AES-256-GCM encryption for transmission and storage. Your Gemini API key is encrypted server-side and is only used to fulfill AI requests initiated by your active session.
                     </p>
                 </div>

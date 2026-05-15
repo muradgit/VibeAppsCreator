@@ -16,16 +16,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en" className={cn("dark", inter.variable)}>
-      <body suppressHydrationWarning className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 min-h-screen flex flex-col overflow-hidden">
+    <html lang="en" className={cn(inter.variable)}>
+      <body suppressHydrationWarning className="bg-background text-foreground min-h-screen flex flex-col">
         <AuthProvider>
             <TooltipProvider>
                 <Navbar />
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex flex-col md:flex-row">
                     {children}
                 </div>
             </TooltipProvider>
-            <Toaster position="bottom-right" theme="dark" richColors />
+            <Toaster position="bottom-right" theme="light" richColors />
         </AuthProvider>
       </body>
     </html>

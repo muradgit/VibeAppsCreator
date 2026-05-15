@@ -75,15 +75,15 @@ export function IdeaForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full max-w-2xl mx-auto">
-      <Card className="border-white/5 bg-slate-900/50 shadow-2xl">
+      <Card className="border-purple-100 bg-white shadow-2xl shadow-purple-500/5">
         <CardContent className="p-6 space-y-4">
           <div className="relative">
             <Textarea
               {...register("idea")}
               placeholder="E.g. A marketplace for tech gadgets with AI product categorization..."
-              className="min-h-[200px] bg-slate-950 border-white/10 text-white p-4 focus:ring-blue-500 rounded-xl resize-none"
+              className="min-h-[200px] bg-purple-50/30 border-purple-100 text-slate-900 p-4 focus:ring-primary rounded-xl resize-none font-medium placeholder:text-slate-400"
             />
-            <div className="absolute bottom-3 right-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            <div className="absolute bottom-3 right-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               {ideaText.length} / 2000
             </div>
           </div>
@@ -97,15 +97,15 @@ export function IdeaForm() {
               variant="outline"
               onClick={enhanceIdea}
               disabled={isEnhancing || isSubmitting}
-              className="flex-1 border-white/5 bg-white/5 hover:bg-white/10 text-white font-bold h-12 md:h-14"
+              className="flex-1 border-purple-100 bg-white hover:bg-purple-50 text-slate-600 font-bold h-12 md:h-14"
             >
-              {isEnhancing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-blue-400" />}
+              {isEnhancing ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
               Enhance my idea
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || isEnhancing}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black h-12 md:h-14 shadow-lg shadow-blue-500/20"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white font-black h-12 md:h-14 shadow-lg shadow-purple-500/20"
             >
               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
               Initialize Build

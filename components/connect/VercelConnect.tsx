@@ -71,15 +71,15 @@ export function VercelConnect({ projectId }: { projectId: string }) {
     };
 
     return (
-        <Card className="border-white/5 bg-slate-900/50">
+        <Card className="border-purple-100 bg-white shadow-lg shadow-purple-500/5">
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                        <CardTitle className="text-white flex items-center gap-2">
-                             <Triangle className="h-5 w-5 fill-white" /> Vercel Deployment
+                        <CardTitle className="text-slate-900 flex items-center gap-2">
+                             <Triangle className="h-5 w-5 fill-slate-900" /> Vercel Deployment
                              {isConnected && selectedProject && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                         </CardTitle>
-                        <CardDescription className="text-slate-400">
+                        <CardDescription className="text-slate-500 font-medium">
                              Automate deployments and preview environments.
                         </CardDescription>
                     </div>
@@ -89,45 +89,45 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                 {!isConnected ? (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">API Token</Label>
+                            <Label className="text-slate-700">API Token</Label>
                             <div className="flex gap-2">
                                 <Input
                                     type="password"
                                     placeholder="Enter your Vercel token"
                                     value={token}
                                     onChange={(e) => setToken(e.target.value)}
-                                    className="bg-slate-950 border-white/10 text-white"
+                                    className="bg-purple-50/30 border-purple-100 text-slate-900"
                                 />
                                 <Button 
                                     onClick={handleConnect} 
                                     disabled={isConnecting}
-                                    className="bg-blue-600 hover:bg-blue-700 font-bold"
+                                    className="bg-primary hover:bg-primary/90 font-bold"
                                 >
-                                    {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Connect"}
+                                    {isConnecting ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : "Connect"}
                                 </Button>
                             </div>
                         </div>
-                        <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3 text-[10px] text-blue-400 leading-relaxed font-bold uppercase tracking-widest">
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex gap-3 text-[10px] text-primary leading-relaxed font-bold uppercase tracking-widest">
                             <ExternalLink className="h-4 w-4 shrink-0" />
                             <p>
-                                Generate a token in your <a href="https://vercel.com/account/tokens" target="_blank" className="underline italic">Vercel Settings</a>.
+                                Generate a token in your <a href="https://vercel.com/account/tokens" target="_blank" className="underline hover:text-primary/80 transition-colors">Vercel Settings</a>.
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">Target Project</Label>
+                            <Label className="text-slate-700">Target Project</Label>
                             {isLoadingProjects ? (
-                                <div className="h-10 bg-slate-950 border border-white/10 rounded-md flex items-center justify-center">
-                                    <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                                <div className="h-10 bg-purple-50/30 border border-purple-100 rounded-md flex items-center justify-center">
+                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
                                 </div>
                             ) : (
                                 <div className="relative">
                                     <select
                                         value={selectedProject}
                                         onChange={(e) => handleProjectSelect(e.target.value)}
-                                        className="w-full bg-slate-950 border border-white/10 rounded-md p-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-500 appearance-none pr-10"
+                                        className="w-full bg-purple-50/30 border border-purple-100 rounded-md p-2 text-sm text-slate-900 outline-none focus:ring-1 focus:ring-primary appearance-none pr-10 font-medium"
                                     >
                                         <option value="">Select a Vercel project</option>
                                         {projects.map((p) => (
@@ -136,14 +136,14 @@ export function VercelConnect({ projectId }: { projectId: string }) {
                                             </option>
                                         ))}
                                     </select>
-                                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                                 </div>
                             )}
                         </div>
                         <Button 
                             variant="outline" 
                             size="sm" 
-                            className="w-full h-8 text-[10px] font-black uppercase tracking-tighter"
+                            className="w-full h-8 text-[10px] font-black uppercase tracking-tighter border-purple-100 text-slate-600 hover:bg-purple-50"
                             onClick={fetchVercelProjects}
                         >
                             Refresh Project List

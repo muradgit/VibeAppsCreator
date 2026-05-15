@@ -72,15 +72,15 @@ export function GithubConnect({ projectId }: { projectId: string }) {
     };
 
     return (
-        <Card className="border-white/5 bg-slate-900/50">
+        <Card className="border-purple-100 bg-white shadow-lg shadow-purple-500/5">
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                        <CardTitle className="text-white flex items-center gap-2">
+                        <CardTitle className="text-slate-900 flex items-center gap-2">
                              <Github className="h-5 w-5" /> GitHub Repository
                              {isConnected && selectedRepo && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                         </CardTitle>
-                        <CardDescription className="text-slate-400">
+                        <CardDescription className="text-slate-500 font-medium">
                             Connect your GitHub account to enable automated code commits and deployments.
                         </CardDescription>
                     </div>
@@ -90,7 +90,7 @@ export function GithubConnect({ projectId }: { projectId: string }) {
                 {!isConnected ? (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="github-token" className="text-slate-300">Personal Access Token (classic)</Label>
+                            <Label htmlFor="github-token" className="text-slate-700">Personal Access Token (classic)</Label>
                             <div className="flex gap-2">
                                 <Input
                                     id="github-token"
@@ -98,38 +98,38 @@ export function GithubConnect({ projectId }: { projectId: string }) {
                                     placeholder="ghp_xxxxxxxxxxxx"
                                     value={token}
                                     onChange={(e) => setToken(e.target.value)}
-                                    className="bg-slate-950 border-white/10 text-white"
+                                    className="bg-purple-50/30 border-purple-100 text-slate-900"
                                 />
                                 <Button 
                                     onClick={handleConnect} 
                                     disabled={isConnecting}
-                                    className="bg-blue-600 hover:bg-blue-700 font-bold"
+                                    className="bg-primary hover:bg-primary/90 font-bold"
                                 >
                                     {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Connect"}
                                 </Button>
                             </div>
                         </div>
-                        <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3 text-[10px] text-blue-400 leading-relaxed uppercase font-bold tracking-widest">
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex gap-3 text-[10px] text-primary leading-relaxed uppercase font-bold tracking-widest">
                             <ExternalLink className="h-4 w-4 shrink-0" />
                             <p>
-                                Generate a token with <code className="text-blue-300">repo</code> scopes in <a href="https://github.com/settings/tokens" target="_blank" className="underline">Settings</a>.
+                                Generate a token with <code className="text-primary/70">repo</code> scopes in <a href="https://github.com/settings/tokens" target="_blank" className="underline hover:text-primary/80 transition-colors">Settings</a>.
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-300">Target Repository</Label>
+                            <Label className="text-slate-700">Target Repository</Label>
                             {isLoadingRepos ? (
-                                <div className="h-10 bg-slate-950 border border-white/10 rounded-md flex items-center justify-center">
-                                    <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                                <div className="h-10 bg-purple-50/30 border border-purple-100 rounded-md flex items-center justify-center">
+                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
                                 </div>
                             ) : (
                                 <div className="relative">
                                     <select
                                         value={selectedRepo}
                                         onChange={(e) => handleRepoSelect(e.target.value)}
-                                        className="w-full bg-slate-950 border border-white/10 rounded-md p-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-500 appearance-none pr-10"
+                                        className="w-full bg-purple-50/30 border border-purple-100 rounded-md p-2 text-sm text-slate-900 outline-none focus:ring-1 focus:ring-primary appearance-none pr-10 font-medium"
                                     >
                                         <option value="">Select a repository</option>
                                         {repos.map((repo) => (
@@ -138,14 +138,14 @@ export function GithubConnect({ projectId }: { projectId: string }) {
                                             </option>
                                         ))}
                                     </select>
-                                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                                 </div>
                             )}
                         </div>
                         <Button 
                             variant="outline" 
                             size="sm" 
-                            className="w-full h-8 text-[10px] font-black uppercase tracking-tighter"
+                            className="w-full h-8 text-[10px] font-black uppercase tracking-tighter border-purple-100 text-slate-600 hover:bg-purple-50"
                             onClick={fetchRepos}
                         >
                             Refresh Repositories

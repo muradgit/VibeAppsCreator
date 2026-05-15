@@ -100,8 +100,8 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
     Object.values(answers).every(a => a.trim().length > 0) : false;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
+    <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 p-4 md:p-6 space-y-6 md:space-y-8">
         {messages.map((m, i) => (
           <div key={i} className="space-y-4 md:space-y-6">
             <AnalysisMessage role={m.role} content={m.content} timestamp={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
@@ -110,10 +110,10 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
               <div className="space-y-6 md:space-y-8 ml-4 md:ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
                 {analysisData.inconsistencies.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest pl-2">Detected Inconsistencies</h4>
+                    <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest pl-2">Detected Inconsistencies</h4>
                     <div className="space-y-2">
                       {analysisData.inconsistencies.map((inc, idx) => (
-                        <div key={idx} className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3 text-xs font-medium text-amber-900">
+                        <div key={idx} className="p-3 rounded-xl bg-amber-50/50 border border-amber-200 flex items-center gap-3 text-xs font-medium text-amber-900">
                           <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
                           <span className="flex-1">{inc}</span>
                         </div>
@@ -124,7 +124,7 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
 
                 {analysisData.similarProducts.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest pl-2">Market Landscape</h4>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-widest pl-2">Market Landscape</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {analysisData.similarProducts.map((prod, idx) => (
                         <a 
@@ -132,11 +132,11 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
                           href={prod.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-all group"
+                          className="p-3 md:p-4 rounded-xl bg-purple-50/30 border border-purple-100 hover:border-primary transition-all group"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-black text-slate-900 uppercase tracking-tight truncate mr-2">{prod.name}</span>
-                            <ExternalLink className="h-3 w-3 text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                            <ExternalLink className="h-3 w-3 text-slate-400 group-hover:text-primary transition-colors shrink-0" />
                           </div>
                           <p className="text-[10px] text-slate-500 leading-tight line-clamp-2">{prod.description}</p>
                         </a>

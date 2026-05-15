@@ -59,16 +59,16 @@ export function PlanView({ projectId }: { projectId: string }) {
   const { plan } = project;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <header className="h-auto min-h-20 px-4 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bg-white dark:bg-slate-900 shadow-sm z-10 shrink-0">
+    <div className="flex-1 flex flex-col bg-white">
+      <header className="h-auto min-h-20 px-4 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bg-white sticky top-0 md:top-[60px] z-30 shadow-sm">
          <div className="space-y-1">
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{plan.projectName}</h1>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">{plan.projectName}</h1>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Architectural Build Plan</p>
          </div>
          <Button 
             onClick={approvePlan}
             disabled={!hasScrolledToBottom}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black h-11 px-8 rounded-xl shadow-xl shadow-blue-500/20 disabled:opacity-50 disabled:grayscale transition-all"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-black h-11 px-8 rounded-xl shadow-xl shadow-purple-500/20 disabled:opacity-50 disabled:grayscale transition-all"
          >
             Approve Plan <ArrowRight className="ml-2 h-5 w-5" />
          </Button>
@@ -77,18 +77,18 @@ export function PlanView({ projectId }: { projectId: string }) {
       <div 
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 md:space-y-12"
+        className="flex-1 p-4 md:p-8 space-y-8 md:space-y-12"
       >
         <section className="max-w-4xl mx-auto space-y-6 md:space-y-8">
             <div className="space-y-4">
-                <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-base md:text-lg text-slate-600 leading-relaxed font-medium">
                     {plan.description}
                 </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <Card className="border-white/5 bg-slate-950 text-white overflow-hidden group">
-                    <CardHeader className="bg-indigo-600 p-4">
+                <Card className="border-purple-100 bg-white overflow-hidden group shadow-sm">
+                    <CardHeader className="bg-primary p-4 text-white">
                         <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
                              <Palette className="h-4 w-4" /> Design System
                         </CardTitle>
@@ -96,22 +96,22 @@ export function PlanView({ projectId }: { projectId: string }) {
                     <CardContent className="p-4 md:p-6 space-y-4">
                         <div className="flex flex-wrap gap-2">
                             {plan.designGuide.colors.map((c: string) => (
-                                <div key={c} className="w-8 h-8 rounded-full border border-white/20 shadow-inner" style={{ backgroundColor: c }} title={c} />
+                                <div key={c} className="w-8 h-8 rounded-full border border-slate-100 shadow-inner" style={{ backgroundColor: c }} title={c} />
                             ))}
                         </div>
                         <div className="space-y-2">
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase">Typography</p>
-                            <p className="text-xs font-medium leading-relaxed opacity-80">{plan.designGuide.typography}</p>
+                            <p className="text-[10px] font-bold text-primary uppercase">Typography</p>
+                            <p className="text-xs font-bold leading-relaxed text-slate-600">{plan.designGuide.typography}</p>
                         </div>
                         <div className="space-y-2">
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase">Tone</p>
-                            <p className="text-xs font-medium leading-relaxed opacity-80">{plan.designGuide.tone}</p>
+                            <p className="text-[10px] font-bold text-primary uppercase">Tone</p>
+                            <p className="text-xs font-bold leading-relaxed text-slate-600">{plan.designGuide.tone}</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-white/5 bg-slate-950 text-white overflow-hidden group">
-                    <CardHeader className="bg-slate-800 p-4">
+                <Card className="border-purple-100 bg-white overflow-hidden group shadow-sm">
+                    <CardHeader className="bg-slate-800 p-4 text-white">
                         <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
                             <BookOpen className="h-4 w-4" /> Developer Guide
                         </CardTitle>
@@ -119,11 +119,11 @@ export function PlanView({ projectId }: { projectId: string }) {
                     <CardContent className="p-4 md:p-6 space-y-4">
                         <div className="space-y-2">
                             <p className="text-[10px] font-bold text-slate-500 uppercase">Coding Standards</p>
-                            <p className="text-xs font-medium leading-relaxed opacity-80">{plan.developerGuide.conventions}</p>
+                            <p className="text-xs font-bold leading-relaxed text-slate-600">{plan.developerGuide.conventions}</p>
                         </div>
                         <div className="space-y-2">
                             <p className="text-[10px] font-bold text-slate-500 uppercase">Key Patterns</p>
-                            <p className="text-xs font-medium leading-relaxed opacity-80">{plan.developerGuide.patterns}</p>
+                            <p className="text-xs font-bold leading-relaxed text-slate-600">{plan.developerGuide.patterns}</p>
                         </div>
                     </CardContent>
                 </Card>

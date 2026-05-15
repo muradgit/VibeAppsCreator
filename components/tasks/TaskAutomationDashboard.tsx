@@ -122,22 +122,22 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
-        <header className="h-auto min-h-20 px-4 md:px-8 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm">
+    <div className="flex flex-col min-h-screen bg-purple-50/20">
+        <header className="h-auto min-h-20 px-4 md:px-8 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b bg-white shrink-0 sticky top-0 md:top-[60px] z-30 shadow-sm">
             <div className="flex items-center gap-6">
                 <div className="space-y-1">
-                    <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">Logic Automation Hub</h2>
+                    <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight text-primary">Logic Automation Hub</h2>
                     <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>Context: {initialProject.name}</span>
-                        <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-300" />
-                        <span className="hidden sm:inline">Repo: {initialProject.github_repo || 'Not linked'}</span>
+                        <span>Context: <span className="text-slate-600 underline decoration-primary/20">{initialProject.name}</span></span>
+                        <div className="hidden sm:block w-1 h-1 rounded-full bg-purple-200" />
+                        <span className="hidden sm:inline text-slate-500">Repo: {initialProject.github_repo || 'Not linked'}</span>
                         {initialProject.github_repo && (
                             <>
-                                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                <div className="w-1 h-1 rounded-full bg-purple-200" />
                                 <button 
                                     onClick={handleSync}
                                     disabled={isSyncing}
-                                    className="flex items-center gap-1 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-50"
                                 >
                                     <RefreshCcw className={cn("h-2.5 w-2.5", isSyncing && "animate-spin")} />
                                     <span>Sync</span>
@@ -157,22 +157,22 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
             </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden relative">
-            {/* Task list sidebar should probably be hidden on mobile or at least scrollable separately */}
-            <div className="hidden xl:block">
+        <div className="flex flex-col md:flex-row flex-1 relative">
+            {/* Task list sidebar */}
+            <div className="hidden xl:block md:w-[380px] shrink-0 border-r border-purple-50 bg-white sticky top-[140px] h-[calc(100vh-140px)] overflow-y-auto">
                 <TaskList tasks={tasks} />
             </div>
 
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 bg-white dark:bg-slate-950">
+            <main className="flex-1 p-4 md:p-8 space-y-6 md:space-y-8 bg-white min-h-screen">
                 {/* Mobile Task Switcher */}
-                <div className="xl:hidden mb-4 overflow-x-auto pb-2 flex gap-2">
+                <div className="xl:hidden mb-4 overflow-x-auto pb-2 flex gap-2 no-scrollbar">
                     {tasks.map(t => (
                         <button 
                             key={t.id}
                             onClick={() => setActiveTask(t.id)}
                             className={cn(
                                 "shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
-                                activeTaskId === t.id ? "bg-blue-600 text-white border-blue-600" : "bg-slate-50 text-slate-400 border-slate-100"
+                                activeTaskId === t.id ? "bg-primary text-white border-primary shadow-md shadow-purple-500/20" : "bg-purple-50 text-slate-400 border-purple-100"
                             )}
                         >
                             #{t.sequence_number} {t.title.split(' ').slice(0, 2).join(' ')}...
