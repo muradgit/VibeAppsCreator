@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "01234567890123456789012345678901";
+const ENCRYPTION_KEY = (process.env.ENCRYPTION_KEY || "01234567890123456789012345678901").padEnd(32, "0").slice(0, 32);
 
 export function encryptToken(token: string): string {
     const iv = randomBytes(16);

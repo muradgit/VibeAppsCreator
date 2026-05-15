@@ -18,9 +18,11 @@ export async function POST(req: Request) {
     
     const encryptedToken = encryptToken(token);
     
-    await (supabase as any).from("projects").update({
+    const { error: dbError } = await (supabase as any).from("projects").update({
       github_token_encrypted: encryptedToken
     }).eq("id", projectId).eq("user_id", session.user.id);
+
+    if (dbError) throw new Error(dbError.message);
 
     return NextResponse.json({ success: true, login: user.login });
   } catch (error: any) {

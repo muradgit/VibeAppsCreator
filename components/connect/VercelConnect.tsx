@@ -24,13 +24,15 @@ export function VercelConnect({ projectId }: { projectId: string }) {
 
         setIsConnecting(true);
         try {
+            const trimmedToken = token.trim();
             const res = await fetch("/api/vercel/connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, projectId })
+                body: JSON.stringify({ token: trimmedToken, projectId })
             });
 
-            if (!res.ok) throw new Error("Failed to validate Vercel token");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to validate Vercel token");
             setIsConnected(true);
             toast.success("Successfully connected to Vercel!");
             fetchVercelProjects();
