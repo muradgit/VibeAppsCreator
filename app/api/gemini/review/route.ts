@@ -13,22 +13,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { taskId, projectId } = await req.json();
+    const { taskId } = await req.json();
 
-    const { data: project } = await (supabase as any)
-      .from("projects")
-      .select("id")
-      .eq("id", projectId)
-      .eq("user_id", session.user.id)
-      .single();
-    if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const { data: task } = await (supabase as any)
-      .from("tasks")
-      .select("*")
-      .eq("id", taskId)
-      .eq("project_id", projectId)
-      .single();
+    const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
     if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     const model = getGeminiModel();
@@ -47,20 +34,15 @@ Generated Code: ${JSON.stringify(task.generated_code)}`;
     const review = JSON.parse(cleanJson);
     const validated = ReviewResponseSchema.parse(review);
 
-    const nextRetryCount = validated.score >= 90 ? task.retry_count : task.retry_count + 1;
-    const nextStatus = nextRetryCount >= 3 && validated.score < 90 ? "failed" : "review";
-
-    await (supabase as any)
-      .from("tasks")
-      .update({
+    const isDone = validated.score >= 90;
+    
+    await (supabase as any).from("tasks").update({ 
         review_result: validated,
-        status: nextStatus,
-        retry_count: nextRetryCount
-      })
-      .eq("id", taskId)
-      .eq("project_id", projectId);
+        status: isDone ? "done" : "pending",
+        retry_count: isDone ? task.retry_count : task.retry_count + 1
+    }).eq("id", taskId);
 
-    return NextResponse.json({ ...validated, taskStatus: nextStatus, retryCount: nextRetryCount });
+    return NextResponse.json(validated);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

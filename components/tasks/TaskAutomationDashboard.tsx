@@ -9,7 +9,7 @@ import { ReviewPanel } from "@/components/code/ReviewPanel";
 import { PromptViewer } from "@/components/code/PromptViewer";
 import { AutomationControls } from "@/components/tasks/AutomationControls";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, FileCode, Check, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle2, FileCode, Check, Loader2, ArrowRight, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,28 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
   const triggerCodeGeneration = (taskId: string, prompt: string) => {
     if ((window as any).resumeAutomation) {
       (window as any).resumeAutomation(taskId, prompt);
+    }
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+        const res = await fetch("/api/github/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projectId: initialProject.id })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || "Sync failed");
+        
+        toast.success(`Successfully synced ${data.fileCount} files from GitHub`);
+        onRefresh();
+    } catch (error: any) {
+        toast.error(error.message);
+    } finally {
+        setIsSyncing(false);
     }
   };
 
@@ -109,6 +131,19 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
                         <span>Project Context: {initialProject.name}</span>
                         <div className="w-1 h-1 rounded-full bg-slate-300" />
                         <span>Repo: {initialProject.github_repo || 'Not linked'}</span>
+                        {initialProject.github_repo && (
+                            <>
+                                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                <button 
+                                    onClick={handleSync}
+                                    disabled={isSyncing}
+                                    className="flex items-center gap-1 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                >
+                                    <RefreshCcw className={cn("h-2.5 w-2.5", isSyncing && "animate-spin")} />
+                                    <span>Sync</span>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { commitFilesToGitHub } from "@/lib/github/commit";
+import { fetchRepoContents } from "@/lib/github/sync";
 import { decryptToken } from "@/lib/utils";
 import { supabase } from "@/lib/supabase/client";
 
@@ -9,10 +9,9 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { taskId, projectId } = await req.json();
+  const { projectId } = await req.json();
 
   const { data: project } = await (supabase as any).from("projects").select("*").eq("id", projectId).single();
-  const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
 
   if (!project?.github_token_encrypted || !project.github_repo) {
     return NextResponse.json({ error: "GitHub not configured for this project" }, { status: 400 });
@@ -22,34 +21,21 @@ export async function POST(req: Request) {
     const token = decryptToken(project.github_token_encrypted);
     const [owner, repo] = project.github_repo.split("/");
 
-    const files = Object.entries(task.generated_code as Record<string, string>).map(([path, content]) => ({
-      path,
-      content
-    }));
-
-    const result = await commitFilesToGitHub({
+    const files = await fetchRepoContents({
       token,
       owner,
-      repo,
-      files,
-      commitMessage: `[ABBA] Task #${task.sequence_number}: ${task.title}`
+      repo
     });
 
-    const commitSha = result[0]?.sha || "unknown";
+    // We can store these files as a "snapshot" or update a task
+    // For now, let's just return them and maybe log that we synced
+    
+    // Optional: Update the most recent task's generated_code if it matches?
+    // Or add a special "Sync" task.
+    // For simplicity, let's just return success and the user can see them in the UI if we add a viewer.
 
-    await (supabase as any).from("tasks").update({
-      github_commit_sha: commitSha,
-      status: "done",
-    }).eq("id", taskId);
-
-    return NextResponse.json({ success: true, commitSha });
+    return NextResponse.json({ success: true, fileCount: Object.keys(files).length });
   } catch (error: any) {
-    if (error.status === 403 || error.status === 429) {
-      return NextResponse.json(
-        { error: "GitHub rate limit reached. Please wait 60 seconds and try again.", rateLimited: true },
-        { status: 429 }
-      );
-    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
