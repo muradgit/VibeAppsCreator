@@ -91,13 +91,13 @@ export function IdeaForm() {
             <p className="text-xs text-rose-500 font-bold">{errors.idea.message}</p>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={enhanceIdea}
               disabled={isEnhancing || isSubmitting}
-              className="flex-1 border-white/5 bg-white/5 hover:bg-white/10 text-white font-bold h-12"
+              className="flex-1 border-white/5 bg-white/5 hover:bg-white/10 text-white font-bold h-12 md:h-14"
             >
               {isEnhancing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-blue-400" />}
               Enhance my idea
@@ -105,7 +105,7 @@ export function IdeaForm() {
             <Button
               type="submit"
               disabled={isSubmitting || isEnhancing}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black h-12 shadow-lg shadow-blue-500/20"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black h-12 md:h-14 shadow-lg shadow-blue-500/20"
             >
               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
               Initialize Build

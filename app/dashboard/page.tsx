@@ -27,38 +27,38 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-50 dark:bg-slate-950">
+      <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
         
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Project Dashboard</h1>
+                <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Project Dashboard</h1>
                 <p className="text-slate-500 text-sm">Manage your AI-powered builds and monitor progress.</p>
             </div>
-            <Link href="/project/new">
-                <Button className="bg-blue-600 hover:bg-blue-700 h-11 px-6 font-bold shadow-lg shadow-blue-500/20">
+            <Link href="/project/new" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 h-11 px-6 font-bold shadow-lg shadow-blue-500/20">
                     <Plus className="mr-2 h-5 w-5" /> New Project
                 </Button>
             </Link>
         </header>
 
         {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {[1, 2, 3].map(i => (
                     <Card key={i} className="animate-pulse bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 h-48" />
                 ))}
             </div>
         ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-20 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div className="flex flex-col items-center justify-center p-12 md:p-20 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
                 <Folder className="h-12 w-12 text-slate-300 mb-4" />
                 <h3 className="text-lg font-bold text-slate-900">No projects yet</h3>
-                <p className="text-slate-500 mb-6">Start your first AI-guided build today.</p>
+                <p className="text-slate-500 mb-6 max-w-xs">Start your first AI-guided build today.</p>
                 <Link href="/project/new">
                     <Button variant="outline">Initialize First Project</Button>
                 </Link>
             </div>
         ) : (
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {projects.map(project => (
                     <Link href={`/project/${project.id}`} key={project.id}>
                         <Card className="group hover:border-blue-500/50 transition-all cursor-pointer bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 shadow-sm hover:shadow-xl">
@@ -102,7 +102,7 @@ export default function Dashboard() {
                 ))}
 
                 <Link href="/project/new">
-                    <Card className="border-dashed border-2 flex flex-col items-center justify-center p-8 bg-transparent hover:bg-slate-100/50 transition-all cursor-pointer opacity-50 hover:opacity-100 h-full">
+                    <Card className="border-dashed border-2 flex flex-col items-center justify-center p-8 bg-transparent hover:bg-slate-100/50 transition-all cursor-pointer opacity-50 hover:opacity-100 h-full min-h-[180px]">
                         <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center mb-4">
                             <Plus className="h-6 w-6 text-slate-400" />
                         </div>

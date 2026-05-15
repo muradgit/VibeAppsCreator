@@ -18,15 +18,16 @@ export default function TaskPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const fetchTask = async () => {
-    const res = await fetch(`/api/projects/${id}/tasks/${taskId}`);
-    if (res.ok) {
-        setTask(await res.json());
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => { fetchTask(); }, [taskId]);
+  useEffect(() => {
+    const fetchTask = async () => {
+      const res = await fetch(`/api/projects/${id}/tasks/${taskId}`);
+      if (res.ok) {
+          setTask(await res.json());
+      }
+      setIsLoading(false);
+    };
+    fetchTask(); 
+  }, [id, taskId]);
 
   if (isLoading) {
     return (

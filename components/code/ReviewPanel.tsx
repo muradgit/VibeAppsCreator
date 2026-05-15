@@ -98,7 +98,7 @@ export function ReviewPanel({ review, onCommit, onRegenerate, isCommitting }: {
         <div className="pt-6 border-t flex items-center justify-between">
             <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Final Verdict</span>
-                <p className="text-sm font-medium text-slate-800 italic">"{review.verdict || "The implementation matches architectural specifications with minor polish needed."}"</p>
+                <p className="text-sm font-medium text-slate-800 italic">&quot;{review.verdict || "The implementation matches architectural specifications with minor polish needed."}&quot;</p>
             </div>
             {(onCommit || onRegenerate) && (
               <div className="flex flex-col items-end gap-2">

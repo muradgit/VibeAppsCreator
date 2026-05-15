@@ -100,15 +100,14 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
     Object.values(answers).every(a => a.trim().length > 0) : false;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
+    <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
         {messages.map((m, i) => (
-          <div key={i} className="space-y-6">
+          <div key={i} className="space-y-4 md:space-y-6">
             <AnalysisMessage role={m.role} content={m.content} timestamp={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
             
-            {/* If it's the first assistant message (summary), show inconsistencies and competitors */}
             {i === 0 && m.role === "assistant" && analysisData && (
-              <div className="space-y-8 ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
+              <div className="space-y-6 md:space-y-8 ml-4 md:ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
                 {analysisData.inconsistencies.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest pl-2">Detected Inconsistencies</h4>
@@ -116,7 +115,7 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
                       {analysisData.inconsistencies.map((inc, idx) => (
                         <div key={idx} className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3 text-xs font-medium text-amber-900">
                           <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                          {inc}
+                          <span className="flex-1">{inc}</span>
                         </div>
                       ))}
                     </div>
@@ -133,13 +132,13 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
                           href={prod.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-all group"
+                          className="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-all group"
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-black text-slate-900 uppercase tracking-tight">{prod.name}</span>
-                            <ExternalLink className="h-3 w-3 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                            <span className="text-xs font-black text-slate-900 uppercase tracking-tight truncate mr-2">{prod.name}</span>
+                            <ExternalLink className="h-3 w-3 text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
                           </div>
-                          <p className="text-[10px] text-slate-500 leading-tight">{prod.description}</p>
+                          <p className="text-[10px] text-slate-500 leading-tight line-clamp-2">{prod.description}</p>
                         </a>
                       ))}
                     </div>
@@ -159,34 +158,34 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
                           <button
                             onClick={() => setActiveQuestionId(isActive ? null : q.id)}
                             className={cn(
-                              "w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between",
+                              "w-full text-left p-3 md:p-4 rounded-xl md:rounded-2xl border transition-all flex items-center justify-between",
                               isActive 
                                 ? "bg-white border-indigo-500 shadow-lg ring-4 ring-indigo-500/5" 
                                 : "bg-slate-50 border-slate-200 hover:bg-white hover:border-slate-300"
                             )}
                           >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                               <div className={cn(
-                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
+                                "w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors shrink-0",
                                 isAnswered ? "bg-emerald-500 text-white" : "bg-indigo-100 text-indigo-600"
                               )}>
                                 {isAnswered ? "✓" : idx + 1}
                               </div>
                               <span className={cn(
-                                "text-sm font-bold",
-                                isActive ? "text-indigo-900" : "text-slate-700"
+                                "text-sm font-bold truncate",
+                                isActive ? "text-indigo-900 whitespace-normal" : "text-slate-700"
                               )}>
                                 {q.question}
                               </span>
                             </div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 shrink-0">
+                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 shrink-0 hidden sm:inline">
                                 {isAnswered ? "Answered" : "Needs Answer"}
                             </span>
                           </button>
 
                           {isActive && (
                             <div className="p-1 animate-in slide-in-from-top-2 duration-200">
-                              <div className="relative group p-4 bg-white border border-indigo-200 rounded-2xl shadow-sm space-y-3">
+                              <div className="relative group p-3 md:p-4 bg-white border border-indigo-200 rounded-xl md:rounded-2xl shadow-sm space-y-3">
                                 <div className="flex items-start gap-2 text-[10px] text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
                                   <BrainCircuit className="h-3 w-3 mt-0.5 text-indigo-400 shrink-0" />
                                   <span>Context: {q.why}</span>
@@ -211,13 +210,13 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
         ))}
       </div>
 
-      <div className="p-6 border-t bg-slate-50 dark:bg-slate-900/50">
+      <div className="p-4 md:p-6 border-t bg-slate-50 dark:bg-slate-900/50">
         {allAnswered && (
           <div className="flex justify-center animate-in fade-in zoom-in duration-300">
             <Button 
                 onClick={generatePlan} 
                 disabled={isPlanning}
-                className="bg-[#0F172A] hover:bg-slate-800 text-white font-black h-14 px-12 rounded-2xl shadow-2xl transition-all hover:scale-105 active:scale-95"
+                className="bg-[#0F172A] hover:bg-slate-800 text-white font-black h-12 md:h-14 px-8 md:px-12 rounded-xl md:rounded-2xl shadow-2xl transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
             >
                 {isPlanning ? (
                     <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Constructing Plan...</>

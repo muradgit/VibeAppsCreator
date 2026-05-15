@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { TaskAutomationDashboard } from "@/components/tasks/TaskAutomationDashboard";
 import { Loader2 } from "lucide-react";
@@ -13,7 +13,7 @@ export default function ProjectTasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
         const [projRes, tasksRes] = await Promise.all([
             fetch(`/api/projects/${id}`),
@@ -29,11 +29,11 @@ export default function ProjectTasksPage() {
     } finally {
         setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [fetchData]);
 
   if (isLoading) {
     return (

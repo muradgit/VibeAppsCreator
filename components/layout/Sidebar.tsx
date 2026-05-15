@@ -15,9 +15,12 @@ const navItems = [
     { href: "tasks", icon: GitBranch, label: "Automation", step: "05" },
 ];
 
+import { useProjectStore } from "@/store/project.store";
+
 export function Sidebar() {
     const params = useParams();
     const pathname = usePathname();
+    const { isSidebarOpen, setSidebarOpen } = useProjectStore();
     const [tasks, setTasks] = useState<Task[]>([]);
     const projectId = params.id as string;
 
@@ -31,10 +34,14 @@ export function Sidebar() {
             }
         };
         fetchProgress();
-        // Set up an interval or listen to a store for real-time updates if needed
-        // For now, periodic fetch or store-based sync is better. 
-        // But the prompt asks for useEffect fetching on mount.
     }, [projectId]);
+
+    // Close sidebar on link click (mobile)
+    const handleLinkClick = () => {
+        if (window.innerWidth < 768) {
+            setSidebarOpen(false);
+        }
+    };
 
     if (!projectId) return null;
 
@@ -42,8 +49,11 @@ export function Sidebar() {
     const totalCount = tasks.length;
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-    return (
-        <aside className="w-60 bg-[#0F172A] shrink-0 border-r border-white/5 flex flex-col justify-between py-6">
+    const sidebarContent = (
+        <aside className={cn(
+            "fixed inset-y-0 left-0 z-40 w-64 bg-[#0F172A] border-r border-white/5 flex flex-col justify-between py-6 transition-transform duration-300 md:static md:translate-x-0 md:h-[calc(100vh-60px)]",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
             <div className="space-y-1">
                 <div className="px-6 mb-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Main Workflow</div>
                 
@@ -51,9 +61,9 @@ export function Sidebar() {
                     const href = `/project/${projectId}/${item.href}`;
                     const isActive = pathname.startsWith(href);
                     return (
-                        <Link href={href} key={item.label}>
+                        <Link href={href} key={item.label} onClick={handleLinkClick}>
                             <div className={cn(
-                                "flex items-center gap-3 px-6 py-2.5 transition-all group border-r-4",
+                                "flex items-center gap-3 px-6 py-3 md:py-2.5 transition-all group border-r-4",
                                 isActive 
                                     ? "text-white bg-blue-600/10 border-blue-500" 
                                     : "text-slate-400 hover:text-white border-transparent"
@@ -77,12 +87,25 @@ export function Sidebar() {
                     <Progress value={progressPercent} className="h-1.5 bg-slate-700" />
                 </div>
 
-                <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors">
+                <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors" onClick={handleLinkClick}>
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Projects</span>
                 </Link>
             </div>
         </aside>
+    );
+
+    return (
+        <>
+            {/* Overlay for mobile */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden animate-in fade-in duration-300"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+            {sidebarContent}
+        </>
     )
 }
 

@@ -11,6 +11,7 @@ interface ProjectStore {
   isRunning: boolean;
   streamingCode: Record<string, string>;
   rawStreamingText: string;
+  isSidebarOpen: boolean;
 
   setProject: (project: Project) => void;
   setTasks: (tasks: Task[]) => void;
@@ -24,6 +25,7 @@ interface ProjectStore {
   clearStreamingCode: () => void;
   startAutomation: () => void;
   pauseAutomation: () => void;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -34,6 +36,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   isRunning: false,
   streamingCode: {},
   rawStreamingText: '',
+  isSidebarOpen: false,
 
   setProject: (project) => set({ currentProject: project }),
   setTasks: (tasks) => set({ tasks }),
@@ -79,4 +82,5 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   startAutomation: () => set({ isRunning: true }),
   pauseAutomation: () => set({ isRunning: false }),
+  setSidebarOpen: (open) => set({ isSidebarOpen: open }),
 }));

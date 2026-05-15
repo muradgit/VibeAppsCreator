@@ -16,7 +16,7 @@ export function StreamingCode({ codeFiles, isStreaming }: { codeFiles: Record<st
                 </div>
                 <div className="space-y-1">
                     <p className="text-sm font-bold text-slate-900 uppercase tracking-widest">Awaiting Command</p>
-                    <p className="text-xs text-slate-400">Click 'Run Next Task' to start generation</p>
+                    <p className="text-xs text-slate-400">Click &apos;Run Next Task&apos; to start generation</p>
                 </div>
             </div>
         </div>

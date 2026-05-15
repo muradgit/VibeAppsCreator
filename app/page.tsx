@@ -6,36 +6,36 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col w-full h-full overflow-y-auto bg-slate-950 text-white">
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32 px-6 overflow-hidden">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 px-4 md:px-6 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl">
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3" />
+            <div className="absolute top-0 left-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-600/20 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-indigo-600/10 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3" />
         </div>
 
-        <div className="relative max-w-5xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest animate-fade-in">
+        <div className="relative max-w-5xl mx-auto text-center space-y-6 md:space-y-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-bold uppercase tracking-widest animate-fade-in">
                 <Zap className="w-3 h-3 fill-current" />
                 <span>The Future of Software Development</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
-                Ship Full-Stack Apps <br /> 
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
+                Ship Full-Stack Apps <br className="hidden sm:block" /> 
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
                     Driven by Intelligence.
                 </span>
             </h1>
             
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
                 Apps Built By Apps is a professional-grade AI workflow that automates analysis, planning, and high-fidelity code generation for complex applications.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 h-14 px-8 text-base font-bold shadow-xl shadow-blue-600/20" asChild>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 h-12 md:h-14 px-8 text-base font-bold shadow-xl shadow-blue-600/20" asChild>
                     <Link href="/dashboard">
                         Start Building Now <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="h-14 px-8 text-base font-bold border-white/10 hover:bg-white/5 transition-all text-white">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 md:h-14 px-8 text-base font-bold border-white/10 hover:bg-white/5 transition-all text-white">
                     <Github className="mr-2 w-5 h-5" /> View on GitHub
                 </Button>
             </div>
@@ -43,9 +43,9 @@ export default function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 px-6 border-t border-white/5 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="py-16 md:py-24 px-4 md:px-6 border-t border-white/5 bg-slate-900/50 text-white">
+        <div className="max-w-7xl mx-auto text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 <FeatureCard 
                     icon={Cpu} 
                     title="AI-Guided Logic" 
