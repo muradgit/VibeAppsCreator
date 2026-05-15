@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { getGeminiModel } from "@/lib/gemini/client";
+import { getProjectGeminiModel } from "@/lib/gemini/client";
 import { PLAN_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { PlanResponseSchema } from "@/lib/gemini/schema";
 import { supabase } from "@/lib/supabase/client";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     const context = conversations?.map((c: any) => `${c.role.toUpperCase()}: ${c.content}`).join("\n") || "";
     const answersText = answers.map((a: any) => `Question ID ${a.questionId}: ${a.answer}`).join("\n");
 
-    const model = getGeminiModel();
+    const model = await getProjectGeminiModel(projectId);
     const prompt = `Application Idea: ${project.idea_raw}\n\nPrevious Analysis Context:\n${context}\n\nUser Answers:\n${answersText}`;
     
     const result = await model.generateContent([

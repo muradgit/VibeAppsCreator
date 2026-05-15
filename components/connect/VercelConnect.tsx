@@ -11,11 +11,13 @@ import { ExternalLink, CheckCircle2, Loader2, Search, Triangle } from "lucide-re
 export function VercelConnect({ 
     projectId,
     initialIsConnected = false,
-    initialProjectId = ""
+    initialProjectId = "",
+    onConnect
 }: { 
     projectId: string;
     initialIsConnected?: boolean;
     initialProjectId?: string;
+    onConnect?: () => void;
 }) {
     const [token, setToken] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
@@ -72,6 +74,7 @@ export function VercelConnect({
             setIsConnected(true);
             toast.success("Successfully connected to Vercel!");
             fetchVercelProjects();
+            onConnect?.();
         } catch (error: any) {
             toast.error(error.message);
         } finally {
@@ -89,6 +92,7 @@ export function VercelConnect({
             });
             if (!res.ok) throw new Error("Failed to link Vercel project");
             toast.success("Vercel project linked successfully!");
+            onConnect?.();
         } catch (error: any) {
             toast.error(error.message);
         }

@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { getGeminiModel } from "@/lib/gemini/client";
+import { getProjectGeminiModel } from "@/lib/gemini/client";
 import { CODE_GENERATOR_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { supabase } from "@/lib/supabase/client";
 
@@ -11,9 +11,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { taskId, prompt } = await req.json();
+    const { taskId, prompt, projectId } = await req.json();
 
-    const model = getGeminiModel();
+    const model = await getProjectGeminiModel(projectId);
     const result = await model.generateContentStream([
       { text: CODE_GENERATOR_SYSTEM_PROMPT },
       { text: prompt }

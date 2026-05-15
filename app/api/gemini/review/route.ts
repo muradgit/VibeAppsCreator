@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { getGeminiModel } from "@/lib/gemini/client";
+import { getProjectGeminiModel } from "@/lib/gemini/client";
 import { CODE_REVIEWER_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { ReviewResponseSchema } from "@/lib/gemini/schema";
 import { supabase } from "@/lib/supabase/client";
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
     if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
-    const model = getGeminiModel();
+    const model = await getProjectGeminiModel(projectId);
     const input = `Task Checklist: ${task.acceptance_criteria.join(", ")}
 Generated Code: ${JSON.stringify(task.generated_code)}`;
 

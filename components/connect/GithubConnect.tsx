@@ -12,11 +12,13 @@ import { cn } from "@/lib/utils";
 export function GithubConnect({ 
     projectId, 
     initialIsConnected = false, 
-    initialRepoName = "" 
+    initialRepoName = "",
+    onConnect
 }: { 
     projectId: string;
     initialIsConnected?: boolean;
     initialRepoName?: string;
+    onConnect?: () => void;
 }) {
     const [token, setToken] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
@@ -73,6 +75,7 @@ export function GithubConnect({
             setIsConnected(true);
             toast.success("Successfully connected to GitHub!");
             fetchRepos();
+            onConnect?.();
         } catch (error: any) {
             toast.error(error.message);
         } finally {
@@ -90,6 +93,7 @@ export function GithubConnect({
             });
             if (!res.ok) throw new Error("Failed to link repository");
             toast.success("Repository linked successfully!");
+            onConnect?.();
         } catch (error: any) {
             toast.error(error.message);
         }

@@ -21,13 +21,14 @@ export default function ProjectConnectPage() {
   const [geminiKey, setGeminiKey] = useState("");
   const [isSavingKey, setIsSavingKey] = useState(false);
 
-  useEffect(() => {
-    const fetchProject = async () => {
-        const res = await fetch(`/api/projects/${id}`);
-        if (res.ok) setProject(await res.json());
-    };
-    fetchProject();
+  const fetchProject = useCallback(async () => {
+    const res = await fetch(`/api/projects/${id}`);
+    if (res.ok) setProject(await res.json());
   }, [id]);
+
+  useEffect(() => {
+    fetchProject();
+  }, [id, fetchProject]);
 
   const saveGeminiKey = async () => {
     setIsSavingKey(true);
@@ -55,9 +56,9 @@ export default function ProjectConnectPage() {
     }
   };
 
-  const isGithubDone = !!project?.github_repo;
-  const isVercelDone = !!project?.vercel_project_id;
-  const isGeminiDone = !!project?.gemini_token_encrypted;
+  const isGithubDone = !!project?.github_repo || !!project?.github_token_encrypted;
+  const isVercelDone = !!project?.vercel_project_id || !!project?.vercel_token_encrypted;
+  const isGeminiDone = !!project?.gemini_token_encrypted || !!project?.tech_stack?.gemini_token_backup;
 
   const canStartBuilding = isGithubDone && isVercelDone && isGeminiDone;
 
@@ -80,6 +81,7 @@ export default function ProjectConnectPage() {
                         projectId={id} 
                         initialIsConnected={!!project?.github_token_encrypted}
                         initialRepoName={project?.github_repo}
+                        onConnect={fetchProject}
                     />
                 </div>
                 <div className="md:col-span-1">
@@ -87,6 +89,7 @@ export default function ProjectConnectPage() {
                         projectId={id} 
                         initialIsConnected={!!project?.vercel_token_encrypted}
                         initialProjectId={project?.vercel_project_id}
+                        onConnect={fetchProject}
                     />
                 </div>
                 <Card className="border-purple-100 bg-white shadow-lg shadow-purple-500/5">

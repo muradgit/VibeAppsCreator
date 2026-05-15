@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Plus, Folder, Clock, CheckCircle2, ChevronRight, LayoutGrid, List, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -30,14 +31,19 @@ export default function Dashboard() {
     <div className="flex-1 p-4 md:p-8 overflow-y-auto bg-purple-50/30">
       <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
         
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Project Dashboard</h1>
-                <p className="text-slate-500 text-sm font-medium">Manage your AI-powered builds and monitor progress.</p>
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-2">
+            <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-primary rounded-full" />
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+                </div>
+                <p className="text-slate-500 text-sm font-medium pl-4 border-l border-purple-100 ml-1">
+                    Manage your AI-powered builds and monitor system progress.
+                </p>
             </div>
             <Link href="/project/new" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 h-11 px-6 font-black shadow-lg shadow-purple-500/20">
-                    <Plus className="mr-2 h-5 w-5" /> New Project
+                <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 h-12 px-8 font-black shadow-xl shadow-purple-500/20 transition-all hover:scale-105 active:scale-95 group">
+                    <Plus className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform duration-300" /> New Project
                 </Button>
             </Link>
         </header>
@@ -63,40 +69,60 @@ export default function Dashboard() {
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {projects.map(project => (
                     <Link href={`/project/${project.id}`} key={project.id}>
-                        <Card className="group hover:border-primary/50 transition-all cursor-pointer bg-white border-purple-50 shadow-sm hover:shadow-xl hover:shadow-purple-500/5">
-                            <CardHeader className="pb-4">
+                        <Card className="group relative overflow-hidden transition-all duration-300 cursor-pointer bg-white border-purple-100/50 shadow-sm hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1.5 active:scale-[0.98]">
+                            {/* Decorative gradient corner */}
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/5 to-transparent -translate-y-8 translate-x-8 rotate-45 group-hover:bg-primary/10 transition-colors" />
+                            
+                            <CardHeader className="pb-4 relative">
                                 <div className="flex items-start justify-between">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Folder className="h-5 w-5 text-primary" />
+                                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-inner">
+                                        <Folder className="h-6 w-6 text-primary group-hover:text-white transition-colors" />
                                     </div>
-                                    <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter ${
-                                        project.status === 'done' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-primary'
-                                    }`}>
+                                    <div className={cn(
+                                        "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm",
+                                        project.status === 'done' 
+                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                                            : 'bg-purple-50 text-primary border-purple-100'
+                                    )}>
                                         {project.status.replace('_', ' ')}
-                                    </span>
+                                    </div>
                                 </div>
-                                <CardTitle className="mt-4 text-base font-black text-slate-800 group-hover:text-primary transition-colors line-clamp-1">
-                                    {project.name}
-                                </CardTitle>
+                                <div className="mt-5 space-y-1">
+                                    <CardTitle className="text-lg font-black text-slate-900 group-hover:text-primary transition-colors tracking-tight leading-tight">
+                                        {project.name}
+                                    </CardTitle>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">
+                                        {project.idea_raw || "AI Architectural Suite"}
+                                    </p>
+                                </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        <span>STATUS</span>
-                                        <span className="text-primary">{project.status}</span>
+
+                            <CardContent className="space-y-6 relative">
+                                <div className="space-y-2.5">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Build Progress</span>
+                                        <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg">
+                                            {project.status === 'done' ? '100%' : project.status === 'building' ? '60%' : '20%'}
+                                        </span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-purple-50 rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-slate-50 border border-slate-100 rounded-full overflow-hidden p-0.5">
                                         <div 
-                                            className="h-full bg-primary transition-all duration-1000 shadow-[0_0_8px_rgba(168,85,247,0.4)]" 
+                                            className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(168,85,247,0.3)] relative overflow-hidden" 
                                             style={{ width: project.status === 'done' ? '100%' : project.status === 'building' ? '60%' : '20%' }} 
-                                        />
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between pt-2 border-t border-purple-50">
-                                    <div className="flex items-center text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                                        <Clock className="w-3.5 h-3.5 mr-1 text-slate-300" /> {new Date(project.updated_at).toLocaleDateString()}
+
+                                <div className="flex items-center justify-between pt-4 border-t border-purple-50/50">
+                                    <div className="flex items-center text-[10px] text-slate-400 font-bold uppercase tracking-tight group-hover:text-slate-600 transition-colors">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse" />
+                                        Updated {new Date(project.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    <div className="flex items-center gap-1 text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
+                                        Open <ChevronRight className="w-3.5 h-3.5" />
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -104,11 +130,13 @@ export default function Dashboard() {
                 ))}
 
                 <Link href="/project/new">
-                    <Card className="border-dashed border-2 border-purple-100 flex flex-col items-center justify-center p-8 bg-transparent hover:bg-purple-50/50 transition-all cursor-pointer opacity-50 hover:opacity-100 h-full min-h-[180px]">
-                        <div className="w-12 h-12 rounded-full border-2 border-dashed border-purple-200 flex items-center justify-center mb-4">
-                            <Plus className="h-6 w-6 text-purple-300" />
+                    <Card className="group border-dashed border-2 border-purple-100 flex flex-col items-center justify-center p-8 bg-transparent hover:bg-purple-50 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full min-h-[240px] relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-purple-200 flex items-center justify-center mb-4 group-hover:border-primary group-hover:bg-white group-hover:scale-110 transition-all duration-300 shadow-sm relative z-10">
+                            <Plus className="h-7 w-7 text-purple-300 group-hover:text-primary transition-colors" />
                         </div>
-                        <p className="text-sm font-black text-purple-400 uppercase tracking-widest">Create New Project</p>
+                        <p className="text-[11px] font-black text-purple-400 group-hover:text-primary uppercase tracking-[0.2em] transition-colors relative z-10">Initialize Project</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 relative z-10">Start a new AI workflow</p>
                     </Card>
                 </Link>
             </section>

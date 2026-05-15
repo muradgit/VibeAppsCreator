@@ -49,13 +49,32 @@ export async function POST(req: Request) {
     const encryptedToken = encryptToken(apiKey);
 
     // 3. Store in Supabase
-    const { error } = await (supabase as any)
-      .from("projects")
-      .update({ gemini_token_encrypted: encryptedToken })
-      .eq("id", projectId)
-      .eq("user_id", session.user.id);
+    try {
+      const { error } = await (supabase as any)
+        .from("projects")
+        .update({ gemini_token_encrypted: encryptedToken })
+        .eq("id", projectId)
+        .eq("user_id", session.user.id);
 
-    if (error) throw error;
+      if (error) {
+          // If specific column is missing, fallback to storing in tech_stack as a backup
+          if (error.message?.includes("column") || error.message?.includes("gemini_token_encrypted")) {
+              console.warn("Falling back to tech_stack storage for Gemini token");
+              const { data: project } = await (supabase as any).from("projects").select("tech_stack").eq("id", projectId).single();
+              const updatedTechStack = { ...(project?.tech_stack || {}), gemini_token_backup: encryptedToken };
+              const { error: fallbackError } = await (supabase as any)
+                  .from("projects")
+                  .update({ tech_stack: updatedTechStack })
+                  .eq("id", projectId);
+              if (fallbackError) throw fallbackError;
+          } else {
+              throw error;
+          }
+      }
+    } catch (saveError: any) {
+      console.error("Failed to save Gemini key:", saveError);
+      return NextResponse.json({ error: "Failed to save to database: " + saveError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

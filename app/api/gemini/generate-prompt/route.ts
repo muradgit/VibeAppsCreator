@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { getGeminiModel } from "@/lib/gemini/client";
+import { getProjectGeminiModel } from "@/lib/gemini/client";
 import { PROMPT_GENERATOR_SYSTEM_PROMPT } from "@/lib/gemini/prompts";
 import { supabase } from "@/lib/supabase/client";
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const codeSummary = doneTasks?.map((t: any) => `Task: ${t.title}\nCode: ${JSON.stringify(t.generated_code)}`).join("\n\n") || "No code generated yet.";
 
-    const model = getGeminiModel();
+    const model = await getProjectGeminiModel(projectId);
     const input = `Task Details:
 Title: ${task.title}
 Description: ${task.description}
