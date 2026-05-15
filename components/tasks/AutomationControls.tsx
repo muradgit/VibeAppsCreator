@@ -7,6 +7,8 @@ import { Loader2, Zap, PlayCircle, ShieldCheck, Github, RotateCcw } from "lucide
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const NO_FILES_GENERATED_SIGNAL = "__VIBE_ERROR__:NO_FILES_GENERATED";
+
 interface AutomationControlsProps {
     projectId: string;
     nextTask: any | null;
@@ -91,6 +93,10 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
                     fullStreamed += chunk;
                     setRawStreamingText(fullStreamed);
                 }
+            }
+
+            if (fullStreamed.includes(NO_FILES_GENERATED_SIGNAL)) {
+                throw new Error("Code generation produced no files. Review has been skipped.");
             }
 
             // 3. Review
