@@ -76,10 +76,18 @@ export default function ProjectConnectPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1">
-                    <GithubConnect projectId={id} />
+                    <GithubConnect 
+                        projectId={id} 
+                        initialIsConnected={!!project?.github_token_encrypted}
+                        initialRepoName={project?.github_repo}
+                    />
                 </div>
                 <div className="md:col-span-1">
-                    <VercelConnect projectId={id} />
+                    <VercelConnect 
+                        projectId={id} 
+                        initialIsConnected={!!project?.vercel_token_encrypted}
+                        initialProjectId={project?.vercel_project_id}
+                    />
                 </div>
                 <Card className="border-purple-100 bg-white shadow-lg shadow-purple-500/5">
                     <CardHeader>

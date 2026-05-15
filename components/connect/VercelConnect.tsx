@@ -8,13 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { ExternalLink, CheckCircle2, Loader2, Search, Triangle } from "lucide-react";
 
-export function VercelConnect({ projectId }: { projectId: string }) {
+export function VercelConnect({ 
+    projectId,
+    initialIsConnected = false,
+    initialProjectId = ""
+}: { 
+    projectId: string;
+    initialIsConnected?: boolean;
+    initialProjectId?: string;
+}) {
     const [token, setToken] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
+    const [isConnected, setIsConnected] = useState(initialIsConnected);
     const [projects, setProjects] = useState<any[]>([]);
-    const [selectedProject, setSelectedProject] = useState("");
+    const [selectedProject, setSelectedProject] = useState(initialProjectId);
     const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
+    useEffect(() => {
+        if (isConnected) {
+            fetchVercelProjects();
+        }
+    }, [isConnected]);
 
     const handleConnect = async () => {
         if (!token) {

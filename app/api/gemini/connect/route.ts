@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     // 1. Validate the key with a small test call
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Use a cheap model for validation
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use a stable model for validation
       await model.generateContent("test");
     } catch (err: any) {
       return NextResponse.json({ error: "Invalid Gemini API Key: " + err.message }, { status: 400 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,13 +9,27 @@ import { toast } from "sonner";
 import { ExternalLink, CheckCircle2, Github, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function GithubConnect({ projectId }: { projectId: string }) {
+export function GithubConnect({ 
+    projectId, 
+    initialIsConnected = false, 
+    initialRepoName = "" 
+}: { 
+    projectId: string;
+    initialIsConnected?: boolean;
+    initialRepoName?: string;
+}) {
     const [token, setToken] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
+    const [isConnected, setIsConnected] = useState(initialIsConnected);
     const [repos, setRepos] = useState<any[]>([]);
-    const [selectedRepo, setSelectedRepo] = useState("");
+    const [selectedRepo, setSelectedRepo] = useState(initialRepoName);
     const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+
+    useEffect(() => {
+        if (isConnected) {
+            fetchRepos();
+        }
+    }, [isConnected]);
 
     const handleConnect = async () => {
         if (!token) {
