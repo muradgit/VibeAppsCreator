@@ -47,7 +47,8 @@ Generated Code: ${JSON.stringify(task.generated_code)}`;
     const review = JSON.parse(cleanJson);
     const validated = ReviewResponseSchema.parse(review);
 
-    const nextRetryCount = validated.score >= 90 ? task.retry_count : task.retry_count + 1;
+    const currentRetryCount = task.retry_count ?? 0;
+    const nextRetryCount = validated.score >= 90 ? currentRetryCount : currentRetryCount + 1;
     const nextStatus = validated.score >= 90
       ? "review"
       : nextRetryCount >= 3
