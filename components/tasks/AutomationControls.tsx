@@ -74,7 +74,7 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             const codeRes = await fetch("/api/gemini/generate-code", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ taskId: nextTask.id, prompt })
+                body: JSON.stringify({ taskId: nextTask.id, projectId, prompt })
             });
             
             if (!codeRes.ok) throw new Error("Code generation failed");
@@ -98,14 +98,14 @@ export function AutomationControls({ projectId, nextTask, onRefresh }: Automatio
             const reviewRes = await fetch("/api/gemini/review", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ taskId: nextTask.id })
+                body: JSON.stringify({ taskId: nextTask.id, projectId })
             });
             if (!reviewRes.ok) throw new Error("Review failed");
             const review = await reviewRes.json();
 
             // BUG 7: Retry Limit Not Enforced
             const MAX_RETRIES = 3;
-            if (review.score < 90 && nextTask.retry_count >= MAX_RETRIES) {
+            if (review.taskStatus === "failed" || (review.score < 90 && (review.retryCount ?? 0) >= MAX_RETRIES)) {
                 pauseAutomation();
                 setStatus("idle");
                 toast.error(

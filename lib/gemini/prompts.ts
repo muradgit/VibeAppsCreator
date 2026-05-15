@@ -81,6 +81,9 @@ Rules:
 - Use TypeScript for all code.
 - Write complete files with all imports included.
 - For EACH file you write, output it using this format:
+\`\`\`tsx\n// filepath: path/to/file.ext\n[Full file content here]\n\`\`\`
+
+Legacy fallback format (only if needed):
 ### FILE: path/to/file.ext
 [Full file content here]
 
