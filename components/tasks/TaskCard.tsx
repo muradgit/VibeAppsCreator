@@ -5,6 +5,7 @@ import { Task } from "@/types";
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "./TaskStatus";
 import { Check, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface TaskCardProps {
   task: Task;
@@ -26,7 +27,10 @@ export function TaskCard({ task, isActive, onClick }: TaskCardProps) {
         : "border-slate-200";
 
   return (
-    <button
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={onClick}
       className={cn(
         "w-full text-left p-4 rounded-xl border-l-4 transition-all flex items-start justify-between group",
@@ -68,6 +72,6 @@ export function TaskCard({ task, isActive, onClick }: TaskCardProps) {
           )} />
         )}
       </div>
-    </button>
+    </motion.button>
   );
 }

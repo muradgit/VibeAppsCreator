@@ -3,13 +3,19 @@
 import { useParams } from "next/navigation";
 import { AnalysisChat } from "@/components/analysis/AnalysisChat";
 import { BrainCircuit } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function ProjectAnalysisPage() {
   const params = useParams();
   const id = params.id as string;
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-950">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-950"
+    >
         <header className="h-16 px-6 flex items-center justify-between border-b bg-white dark:bg-slate-900 shrink-0">
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
@@ -27,6 +33,6 @@ export default function ProjectAnalysisPage() {
         <div className="flex-1 overflow-hidden">
             <AnalysisChat projectId={id} />
         </div>
-    </div>
+    </motion.div>
   );
 }

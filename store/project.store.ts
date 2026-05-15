@@ -16,14 +16,17 @@ interface ProjectStore {
   setTasks: (tasks: Task[]) => void;
   setActiveTask: (taskId: string | null) => void;
   updateTask: (taskId: string, updatedFields: Partial<Task>) => void;
+  updateTaskStatus: (taskId: string, status: Task['status']) => void;
   setAutomationMode: (mode: AutomationMode) => void;
   setRawStreamingText: (text: string) => void;
+  setStreamingCode: (text: string) => void;
+  appendStreamingCode: (chunk: string) => void;
   clearStreamingCode: () => void;
   startAutomation: () => void;
   pauseAutomation: () => void;
 }
 
-export const useProjectStore = create<ProjectStore>((set) => ({
+export const useProjectStore = create<ProjectStore>((set, get) => ({
   currentProject: null,
   tasks: [],
   activeTaskId: null,
@@ -42,6 +45,10 @@ export const useProjectStore = create<ProjectStore>((set) => ({
     ),
   })),
 
+  updateTaskStatus: (taskId, status) => {
+    get().updateTask(taskId, { status });
+  },
+
   setAutomationMode: (mode) => set({ automationMode: mode }),
   
   setRawStreamingText: (text) => set((state) => {
@@ -58,6 +65,15 @@ export const useProjectStore = create<ProjectStore>((set) => ({
         streamingCode: files 
     };
   }),
+
+  setStreamingCode: (text) => {
+    get().setRawStreamingText(text);
+  },
+
+  appendStreamingCode: (chunk) => {
+    const newText = get().rawStreamingText + chunk;
+    get().setRawStreamingText(newText);
+  },
 
   clearStreamingCode: () => set({ streamingCode: {}, rawStreamingText: '' }),
 

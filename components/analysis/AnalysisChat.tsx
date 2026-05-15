@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, Wand2, BrainCircuit, AlertTriangle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface Question {
   id: string;
@@ -32,9 +33,8 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  const [currentAnswer, setCurrentAnswer] = useState("");
   const [isPlanning, setIsPlanning] = useState(false);
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
     const startAnalysis = async () => {
@@ -52,6 +52,7 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
         const data = await analyzeRes.json();
         setAnalysisData(data);
         setMessages([{ role: "assistant", content: data.summary }]);
+        if (data.questions.length > 0) setActiveQuestionId(data.questions[0].id);
       } catch (error: any) {
         toast.error(error.message);
       } finally {
@@ -61,31 +62,6 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
 
     startAnalysis();
   }, [projectId]);
-
-  const submitAnswer = async () => {
-    if (!currentAnswer.trim()) return;
-
-    const question = analysisData?.questions[currentQuestionIdx];
-    if (!question) return;
-
-    const newMessages = [
-        ...messages,
-        { role: "user" as const, content: currentAnswer }
-    ];
-    setMessages(newMessages);
-    
-    const newAnswers = { ...answers, [question.id]: currentAnswer };
-    setAnswers(newAnswers);
-    setCurrentAnswer("");
-
-    if (currentQuestionIdx < (analysisData?.questions.length || 0) - 1) {
-        setCurrentQuestionIdx(currentQuestionIdx + 1);
-        const nextQ = analysisData?.questions[currentQuestionIdx + 1].question;
-        setMessages([...newMessages, { role: "assistant", content: nextQ! }]);
-    } else {
-        setMessages([...newMessages, { role: "assistant", content: "Great! I have everything I need to generate the build plan." }]);
-    }
-  };
 
   const generatePlan = async () => {
     setIsPlanning(true);
@@ -119,7 +95,9 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
     );
   }
 
-  const allAnswered = Object.keys(answers).length === analysisData?.questions.length;
+  const allAnswered = analysisData?.questions.length ? 
+    Object.keys(answers).length === analysisData.questions.length && 
+    Object.values(answers).every(a => a.trim().length > 0) : false;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950">
@@ -130,7 +108,7 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
             
             {/* If it's the first assistant message (summary), show inconsistencies and competitors */}
             {i === 0 && m.role === "assistant" && analysisData && (
-              <div className="space-y-6 ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
+              <div className="space-y-8 ml-12 animate-in fade-in slide-in-from-left-4 duration-500">
                 {analysisData.inconsistencies.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest pl-2">Detected Inconsistencies</h4>
@@ -167,48 +145,75 @@ export function AnalysisChat({ projectId }: { projectId: string }) {
                     </div>
                   </div>
                 )}
+
+                {/* All Questions Rendered Simultaneously */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Architectural Clarification</h4>
+                  <div className="space-y-3">
+                    {analysisData.questions.map((q, idx) => {
+                      const isAnswered = !!answers[q.id]?.trim();
+                      const isActive = activeQuestionId === q.id;
+
+                      return (
+                        <div key={q.id} className="space-y-2">
+                          <button
+                            onClick={() => setActiveQuestionId(isActive ? null : q.id)}
+                            className={cn(
+                              "w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between",
+                              isActive 
+                                ? "bg-white border-indigo-500 shadow-lg ring-4 ring-indigo-500/5" 
+                                : "bg-slate-50 border-slate-200 hover:bg-white hover:border-slate-300"
+                            )}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={cn(
+                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
+                                isAnswered ? "bg-emerald-500 text-white" : "bg-indigo-100 text-indigo-600"
+                              )}>
+                                {isAnswered ? "✓" : idx + 1}
+                              </div>
+                              <span className={cn(
+                                "text-sm font-bold",
+                                isActive ? "text-indigo-900" : "text-slate-700"
+                              )}>
+                                {q.question}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 shrink-0">
+                                {isAnswered ? "Answered" : "Needs Answer"}
+                            </span>
+                          </button>
+
+                          {isActive && (
+                            <div className="p-1 animate-in slide-in-from-top-2 duration-200">
+                              <div className="relative group p-4 bg-white border border-indigo-200 rounded-2xl shadow-sm space-y-3">
+                                <div className="flex items-start gap-2 text-[10px] text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                  <BrainCircuit className="h-3 w-3 mt-0.5 text-indigo-400 shrink-0" />
+                                  <span>Context: {q.why}</span>
+                                </div>
+                                <Textarea
+                                  value={answers[q.id] || ""}
+                                  onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                  placeholder="Define the technical logic..."
+                                  className="w-full min-h-[100px] bg-transparent border-none focus:ring-0 outline-none resize-none text-sm p-0"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         ))}
-        {!allAnswered && analysisData && (
-          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-sm font-bold text-indigo-900 flex items-center gap-3">
-               <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white">
-                    {currentQuestionIdx + 1}
-               </div>
-               {analysisData.questions[currentQuestionIdx].question}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="p-6 border-t bg-slate-50 dark:bg-slate-900/50">
-        {!allAnswered ? (
-          <div className="relative group max-w-3xl mx-auto">
-            <Textarea
-              value={currentAnswer}
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              placeholder="Your answer..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    submitAnswer();
-                }
-              }}
-              className="w-full min-h-[100px] p-4 rounded-2xl bg-white dark:bg-slate-950 border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none resize-none transition-all pr-12 text-sm shadow-sm"
-            />
-            <Button 
-                onClick={submitAnswer}
-                disabled={!currentAnswer.trim()}
-                size="icon" 
-                className="absolute bottom-3 right-3 bg-indigo-600 hover:bg-indigo-700 h-9 w-9 rounded-xl shadow-lg shadow-indigo-500/20"
-            >
-                <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex justify-center">
+        {allAnswered && (
+          <div className="flex justify-center animate-in fade-in zoom-in duration-300">
             <Button 
                 onClick={generatePlan} 
                 disabled={isPlanning}

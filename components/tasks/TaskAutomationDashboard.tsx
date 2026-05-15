@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { CompletionScreen } from "@/components/tasks/CompletionScreen";
 
@@ -125,8 +126,15 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
             <TaskList tasks={tasks} />
 
             <main className="flex-1 overflow-y-auto p-8 space-y-8 bg-white dark:bg-slate-950">
+                <AnimatePresence mode="wait">
                 {activeTask ? (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                    <motion.div 
+                        key={activeTaskId}
+                        initial={{ opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -16 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                    >
                         <div className="flex items-start justify-between mb-8">
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2">
@@ -215,9 +223,14 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
                                 />
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center flex-1 text-center py-40 space-y-6 opacity-40">
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center justify-center flex-1 text-center py-40 space-y-6 opacity-40"
+                    >
                         <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center rotate-3 border border-slate-200">
                             <CheckCircle2 className="h-12 w-12 text-slate-300" />
                         </div>
@@ -225,8 +238,9 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
                             <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Queue Optimized</h3>
                             <p className="text-sm text-slate-500 font-medium">All pending logic tasks have been finalized for this phase.</p>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
+                </AnimatePresence>
             </main>
         </div>
     </div>
