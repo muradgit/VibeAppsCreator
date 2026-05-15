@@ -35,53 +35,37 @@ export async function POST(req: Request) {
     if (!task) return new Response("Not found", { status: 404 });
 
     const model = getGeminiModel();
-    const result = await model.generateContentStream([
+    const result = await model.generateContent([
       { text: CODE_GENERATOR_SYSTEM_PROMPT },
       { text: prompt }
     ]);
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        let fullText = "";
-        for await (const chunk of result.stream) {
-          const text = chunk.text();
-          fullText += text;
-          controller.enqueue(new TextEncoder().encode(text));
-        }
+    const fullText = result.response.text();
+    const files = parseGeneratedFiles(fullText);
 
-        // Post-processing to parse files
-        const files = parseGeneratedFiles(fullText);
+    if (Object.keys(files).length === 0) {
+      await (supabase as any)
+        .from("tasks")
+        .update({ status: "failed", retry_count: task.retry_count + 1 })
+        .eq("id", taskId)
+        .eq("project_id", projectId);
 
-        if (Object.keys(files).length === 0) {
-          await (supabase as any)
-            .from("tasks")
-            .update({ status: "failed", retry_count: task.retry_count + 1 })
-            .eq("id", taskId)
-            .eq("project_id", projectId);
+      return new Response(NO_FILES_GENERATED_SIGNAL, { status: 422 });
+    }
 
-          controller.enqueue(
-            new TextEncoder().encode(`\n${NO_FILES_GENERATED_SIGNAL}`)
-          );
-          controller.close();
-          return;
-        }
+    await (supabase as any)
+      .from("tasks")
+      .update({
+        generated_code: files,
+        status: "review"
+      })
+      .eq("id", taskId)
+      .eq("project_id", projectId);
 
-        // Update task
-        await (supabase as any).from("tasks").update({ 
-            generated_code: files,
-            status: "review" 
-        }).eq("id", taskId).eq("project_id", projectId);
-
-        controller.close();
-      },
-    });
-
-    return new Response(stream, {
+    return new Response(fullText, {
       headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
+        "Content-Type": "text/plain; charset=utf-8"
+      }
     });
   } catch (error: any) {
     return new Response(error.message, { status: 500 });
