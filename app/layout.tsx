@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -18,15 +19,17 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className={cn(inter.variable)}>
       <body suppressHydrationWarning className="bg-background text-foreground min-h-screen flex flex-col">
-        <AuthProvider>
-            <TooltipProvider>
-                <Navbar />
-                <div className="flex-1 flex flex-col md:flex-row">
-                    {children}
-                </div>
-            </TooltipProvider>
-            <Toaster position="bottom-right" theme="light" richColors />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+              <TooltipProvider>
+                  <Navbar />
+                  <div className="flex-1 flex flex-col md:flex-row">
+                      {children}
+                  </div>
+              </TooltipProvider>
+              <Toaster position="bottom-right" theme="light" richColors />
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

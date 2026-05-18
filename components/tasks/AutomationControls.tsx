@@ -1,203 +1,135 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/store/project.store";
-import { Loader2, Zap, PlayCircle, ShieldCheck, Github, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Play, Pause, FastForward, Loader2, Command, Zap, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface AutomationControlsProps {
-    projectId: string;
-    nextTask: any | null;
-    onRefresh: () => void;
-}
+export function AutomationControls({ projectId, nextTask, onRefresh }: { 
+    projectId: string, 
+    nextTask: any,
+    onRefresh: () => void
+}) {
+  const { 
+    isRunning, 
+    startAutomation,
+    pauseAutomation,
+    appendStreamingCode,
+    clearStreamingCode,
+    automationMode, 
+    setAutomationMode,
+    activeTaskId,
+    setActiveTask,
+    tasks
+  } = useProjectStore();
 
-export function AutomationControls({ projectId, nextTask, onRefresh }: AutomationControlsProps) {
-    const { setRawStreamingText, clearStreamingCode, startAutomation, pauseAutomation } = useProjectStore();
-    const [status, setStatus] = useState<"idle" | "prompting" | "coding" | "reviewing" | "committing">("idle");
-    const [automationMode, setAutomationMode] = useState<"manual" | "semi" | "full">("semi");
+  const runSequence = async (taskId: string, prompt: string) => {
+    startAutomation();
+    clearStreamingCode();
+    
+    try {
+        const response = await fetch("/api/gemini/generate-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ taskId, prompt, projectId })
+        });
 
-    const runSequence = async (resumeFromStep?: number, resumePrompt?: string) => {
-        if (!nextTask) {
-            toast.info("All tasks completed");
-            return;
+        if (!response.ok) throw new Error("Generation failed");
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader!.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            appendStreamingCode(chunk);
         }
 
-        const step = resumeFromStep || 1;
+        toast.success("Code expansion complete");
+        onRefresh();
 
-        if (step === 1) {
-            // BUG 6: Check dependencies are all done
-            if (nextTask.dependencies && nextTask.dependencies.length > 0) {
-                const allTasks = useProjectStore.getState().tasks;
-                const unmetDeps = nextTask.dependencies.filter((depId: string) => {
-                    const depTask = allTasks.find((t: any) => t.id === depId);
-                    return !depTask || depTask.status !== 'done';
-                });
-                if (unmetDeps.length > 0) {
-                    toast.warning(`Task "${nextTask.title}" is waiting for ${unmetDeps.length} dependency/dependencies to complete first.`);
-                    pauseAutomation();
-                    setStatus("idle");
-                    return;
-                }
-            }
+        // If full automation is on, proceed to review and next task
+        if (automationMode === 'full') {
+            // Logic for auto-review and commit could be triggered here
+            // For now, it pauses for user to see the result
         }
         
-        try {
-            startAutomation();
-            
-            let prompt = resumePrompt || "";
+    } catch (error: any) {
+        toast.error(error.message);
+    } finally {
+        pauseAutomation();
+    }
+  };
 
-            if (step <= 1) {
-                // 1. Generate Prompt
-                setStatus("prompting");
-                const promptRes = await fetch("/api/gemini/generate-prompt", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ taskId: nextTask.id, projectId })
-                });
-                if (!promptRes.ok) throw new Error("Prompt generation failed");
-                const data = await promptRes.json();
-                prompt = data.prompt;
-                
-                // BUG 6: Pause after prompt generation
-                toast.info("Task prompt generated. Review needed before construction.");
-                setStatus("idle");
-                pauseAutomation();
-                onRefresh();
-                return;
-            }
+  // Expose to window for TaskAutomationDashboard to call
+  if (typeof window !== 'undefined') {
+    (window as any).resumeAutomation = runSequence;
+  }
 
-            // 2. Generate Code (Streaming)
-            clearStreamingCode();
-            setStatus("coding");
-            const codeRes = await fetch("/api/gemini/generate-code", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ taskId: nextTask.id, prompt, projectId })
-            });
-            
-            if (!codeRes.ok) throw new Error("Code generation failed");
-            
-            const reader = codeRes.body?.getReader();
-            const decoder = new TextDecoder();
-            let fullStreamed = "";
-            
-            if (reader) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value);
-                    fullStreamed += chunk;
-                    setRawStreamingText(fullStreamed);
-                }
-            }
+  const handleStartNext = () => {
+    if (!nextTask) return;
+    setActiveTask(nextTask.id);
+    if (nextTask.generated_prompt) {
+        runSequence(nextTask.id, nextTask.generated_prompt);
+    }
+  };
 
-            // 3. Review
-            setStatus("reviewing");
-            const reviewRes = await fetch("/api/gemini/review", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ taskId: nextTask.id, projectId })
-            });
-            if (!reviewRes.ok) throw new Error("Review failed");
-            const review = await reviewRes.json();
-
-            // BUG 7: Retry Limit Not Enforced
-            const MAX_RETRIES = 3;
-            if (review.score < 90 && nextTask.retry_count >= MAX_RETRIES) {
-                pauseAutomation();
-                setStatus("idle");
-                toast.error(
-                    `Task "${nextTask.title}" has failed review ${MAX_RETRIES} times. Please manually review the prompt or edit the code before continuing.`,
-                    { duration: 8000 }
-                );
-                onRefresh();
-                return;
-            }
-
-            // BUG 5: Manual/Semi mode pausing
-            if (automationMode === 'manual' || automationMode === 'semi') {
-                pauseAutomation();
-                setStatus("idle");
-                onRefresh();
-                toast.success("Review complete — approve to commit");
-                return;
-            }
-
-            if (review.score >= 90 && automationMode === "full") {
-                // 4. Auto-commit
-                setStatus("committing");
-                const commitRes = await fetch("/api/github/commit", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ taskId: nextTask.id, projectId })
-                });
-                if (!commitRes.ok) throw new Error("Auto-commit failed");
-                toast.success("Task completed and committed!");
-                onRefresh();
-                
-                // If full auto, continue to next task
-                setTimeout(() => runSequence(), 2000);
-            } else {
-                onRefresh();
-                toast.success("Task execution finished. Please review code.");
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        } finally {
-            setStatus("idle");
-            pauseAutomation();
-        }
-    };
-
-    // Resuming from dashboard via prompt submission
-    (window as any).resumeAutomation = (taskId: string, prompt: string) => {
-        if (nextTask?.id === taskId) {
-            runSequence(2, prompt);
-        }
-    };
-
-    return (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-3 md:p-4 bg-white border border-purple-100 rounded-xl md:rounded-2xl shadow-lg shadow-purple-500/5">
-            <div className="flex gap-1 p-1 bg-purple-50 rounded-lg md:rounded-xl border border-purple-50 overflow-x-auto shrink-0 no-scrollbar">
-                {(["manual", "semi", "full"] as const).map((m) => (
-                    <button
-                        key={m}
-                        onClick={() => setAutomationMode(m)}
-                        className={cn(
-                            "px-3 py-1.5 rounded-md md:rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                            automationMode === m ? "bg-primary text-white shadow-lg shadow-purple-500/20" : "text-slate-400 hover:text-slate-600"
-                        )}
-                    >
-                        {m}
-                    </button>
-                ))}
-            </div>
-
-            <div className="hidden sm:block h-8 w-px bg-purple-50" />
-
-            <Button
-                onClick={() => runSequence()}
-                disabled={status !== "idle" || !nextTask}
-                className={cn(
-                    "flex-1 h-10 md:h-11 font-black transition-all text-xs md:text-sm truncate",
-                    status === "idle" ? "bg-primary hover:bg-primary/90 text-white shadow-xl shadow-purple-500/20" : "bg-slate-100 text-slate-400"
-                )}
-            >
-                {status === "idle" ? (
-                    <><PlayCircle className="mr-2 h-4 w-4 md:h-5 md:w-5 shrink-0" /> <span className="truncate">Next: {nextTask?.title || "End"}</span></>
-                ) : (
-                    <><Loader2 className="mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin shrink-0" /> {status.toUpperCase()}...</>
-                )}
-            </Button>
-
-            {status !== "idle" && (
-                <div className="flex items-center justify-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
-                    <Zap className="h-3 w-3 text-primary fill-current" />
-                    <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-widest">{status}</span>
-                </div>
-            )}
+  return (
+    <div className="flex items-center gap-2 p-2 bg-slate-900 rounded-2xl shadow-xl shadow-purple-500/10 border border-white/5 w-full">
+        <div className="flex bg-slate-800 rounded-xl p-1 shrink-0">
+            {[
+                { id: 'manual', icon: Command, label: 'Standard' },
+                { id: 'semi', icon: Zap, label: 'Assistant' },
+                { id: 'full', icon: PlayCircle, label: 'Auto' }
+            ].map((mode) => (
+                <Tooltip key={mode.id}>
+                    <TooltipTrigger asChild>
+                        <button
+                            onClick={() => setAutomationMode(mode.id as any)}
+                            className={cn(
+                                "p-2 !px-3 md:px-4 rounded-lg flex items-center gap-2 transition-all duration-300",
+                                automationMode === mode.id 
+                                    ? "bg-primary text-white shadow-lg shadow-purple-500/30" 
+                                    : "text-slate-400 hover:text-white"
+                            )}
+                        >
+                            <mode.icon className="h-4 w-4" />
+                            <span className="text-[10px] uppercase font-black tracking-widest hidden sm:inline">{mode.label}</span>
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] font-black uppercase tracking-widest bg-slate-900 border-white/10">
+                        {mode.id} Synthesis Mode
+                    </TooltipContent>
+                </Tooltip>
+            ))}
         </div>
-    );
+        
+        <div className="h-8 w-px bg-white/10 mx-1 shrink-0" />
+
+        <Button 
+            onClick={handleStartNext}
+            disabled={isRunning || !nextTask}
+            className={cn(
+                "flex-1 h-11 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all duration-500 overflow-hidden relative group",
+                isRunning ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20"
+            )}
+        >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            {isRunning ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Synthesizing Logic...
+                </>
+            ) : (
+                <>
+                    <Play className="mr-2 h-4 w-4 fill-current" />
+                    Process Next Step
+                </>
+            )}
+        </Button>
+    </div>
+  );
 }

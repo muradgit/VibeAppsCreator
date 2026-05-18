@@ -81,7 +81,12 @@ export default function TaskPage() {
             {task.review_result && (
                 <section className="space-y-4">
                     <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logic Audit Result</h2>
-                    <ReviewPanel review={task.review_result} />
+                    <ReviewPanel 
+                        review={task.review_result} 
+                        onCommit={() => {}} 
+                        onRegenerate={() => {}} 
+                        isCommitting={false} 
+                    />
                 </section>
             )}
         </div>

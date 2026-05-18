@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { TaskAutomationDashboard } from "@/components/tasks/TaskAutomationDashboard";
 import { Loader2 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export default function ProjectTasksPage() {
   const params = useParams();
@@ -44,10 +45,12 @@ export default function ProjectTasksPage() {
   }
 
   return (
-    <TaskAutomationDashboard 
-        initialTasks={tasks} 
-        initialProject={project}
-        onRefresh={fetchData}
-    />
+    <ErrorBoundary>
+        <TaskAutomationDashboard 
+            initialTasks={tasks} 
+            initialProject={project}
+            onRefresh={fetchData}
+        />
+    </ErrorBoundary>
   );
 }

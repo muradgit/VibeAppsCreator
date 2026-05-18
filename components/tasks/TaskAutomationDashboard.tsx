@@ -9,7 +9,7 @@ import { ReviewPanel } from "@/components/code/ReviewPanel";
 import { PromptViewer } from "@/components/code/PromptViewer";
 import { AutomationControls } from "@/components/tasks/AutomationControls";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, FileCode, Check, Loader2, ArrowRight, RefreshCcw } from "lucide-react";
+import { CheckCircle2, FileCode, Check, Loader2, ArrowRight, RefreshCcw, LayoutPanelLeft, List, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -34,13 +34,17 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
   } = useProjectStore();
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [mobileView, setMobileView] = useState<"tasks" | "editor">("tasks");
 
   useEffect(() => {
     setTasks(initialTasks);
     setProject(initialProject);
     if (!activeTaskId && initialTasks.length > 0) {
         const firstPending = initialTasks.find(t => t.status !== 'done');
-        if (firstPending) setActiveTask(firstPending.id);
+        if (firstPending) {
+            setActiveTask(firstPending.id);
+            setMobileView("editor");
+        }
     }
   }, [initialTasks, initialProject, activeTaskId, setActiveTask, setProject, setTasks]);
 
@@ -68,10 +72,9 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
         });
         
         const data = await res.json();
-        
         if (!res.ok) throw new Error(data.error || "Sync failed");
         
-        toast.success(`Successfully synced ${data.fileCount} files from GitHub`);
+        toast.success(`Synced ${data.fileCount} files`);
         onRefresh();
     } catch (error: any) {
         toast.error(error.message);
@@ -91,28 +94,9 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
         });
         
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Commit failed");
         
-        if (!res.ok) {
-          if (data.rateLimited) {
-            let timeLeft = 60;
-            const toastId = toast.error(`GitHub rate limit reached. Retrying in ${timeLeft}s...`, { duration: 61000 });
-            
-            const interval = setInterval(() => {
-              timeLeft -= 1;
-              if (timeLeft <= 0) {
-                clearInterval(interval);
-                toast.dismiss(toastId);
-                handleCommit(); // Auto-retry when countdown ends
-              } else {
-                toast.error(`GitHub rate limit reached. Retrying in ${timeLeft}s...`, { id: toastId });
-              }
-            }, 1000);
-            return;
-          }
-          throw new Error(data.error || "Commit failed");
-        }
-        
-        toast.success("Changes committed to GitHub");
+        toast.success("Committed to GitHub");
         onRefresh();
     } catch (error: any) {
         toast.error(error.message);
@@ -122,33 +106,23 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-purple-50/20">
-        <header className="h-auto min-h-20 px-4 md:px-8 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b bg-white shrink-0 sticky top-0 md:top-[60px] z-30 shadow-sm">
-            <div className="flex items-center gap-6">
+    <div className="flex flex-col min-h-screen bg-white">
+        <header className="h-auto px-4 md:px-8 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b bg-white shrink-0 sticky top-0 md:top-[60px] z-[40] shadow-sm">
+            <div className="flex items-center gap-4">
+                <div className="w-1.5 h-10 bg-primary rounded-full hidden sm:block" />
                 <div className="space-y-1">
-                    <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight text-primary">Logic Automation Hub</h2>
-                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>Context: <span className="text-slate-600 underline decoration-primary/20">{initialProject.name}</span></span>
-                        <div className="hidden sm:block w-1 h-1 rounded-full bg-purple-200" />
-                        <span className="hidden sm:inline text-slate-500">Repo: {initialProject.github_repo || 'Not linked'}</span>
-                        {initialProject.github_repo && (
-                            <>
-                                <div className="w-1 h-1 rounded-full bg-purple-200" />
-                                <button 
-                                    onClick={handleSync}
-                                    disabled={isSyncing}
-                                    className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-50"
-                                >
-                                    <RefreshCcw className={cn("h-2.5 w-2.5", isSyncing && "animate-spin")} />
-                                    <span>Sync</span>
-                                </button>
-                            </>
-                        )}
+                    <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase">Logic Automation</h2>
+                    <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <span className="text-primary/70">{initialProject.name}</span>
+                        <div className="w-1 h-1 rounded-full bg-slate-200" />
+                        <button onClick={handleSync} disabled={isSyncing} className="hover:text-primary transition-all flex items-center gap-1">
+                            <RefreshCcw className={cn("h-2 w-2", isSyncing && "animate-spin")} /> Sync
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <div className="w-full lg:w-1/2 max-w-lg">
+            <div className="w-full lg:w-1/2">
                 <AutomationControls 
                     projectId={initialProject.id} 
                     nextTask={nextTask} 
@@ -157,146 +131,154 @@ export function TaskAutomationDashboard({ initialTasks, initialProject, onRefres
             </div>
         </header>
 
-        <div className="flex flex-col md:flex-row flex-1 relative">
+        {/* Mobile View Switcher */}
+        <div className="flex md:hidden border-b bg-slate-50 sticky top-[136px] z-30">
+            <button 
+                onClick={() => setMobileView("tasks")}
+                className={cn("flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 border-b-2 transition-all", mobileView === "tasks" ? "border-primary text-primary bg-white" : "border-transparent text-slate-400")}
+            >
+                <List className="h-4 w-4" /> Task List
+            </button>
+            <button 
+                onClick={() => setMobileView("editor")}
+                className={cn("flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 border-b-2 transition-all", mobileView === "editor" ? "border-primary text-primary bg-white" : "border-transparent text-slate-400")}
+            >
+                <Code2 className="h-4 w-4" /> Logic Console
+            </button>
+        </div>
+
+        <div className="flex flex-1 relative overflow-hidden">
             {/* Task list sidebar */}
-            <div className="hidden xl:block md:w-[380px] shrink-0 border-r border-purple-50 bg-white sticky top-[140px] h-[calc(100vh-140px)] overflow-y-auto">
+            <div className={cn(
+                "w-full md:w-[380px] shrink-0 border-r border-purple-50 bg-white md:sticky md:top-[140px] md:h-[calc(100vh-140px)] overflow-y-auto transition-transform duration-300",
+                mobileView === "tasks" ? "translate-x-0" : "-translate-x-full absolute md:static md:translate-x-0"
+            )}>
                 <TaskList tasks={tasks} />
             </div>
 
-            <main className="flex-1 p-4 md:p-8 space-y-6 md:space-y-8 bg-white min-h-screen">
-                {/* Mobile Task Switcher */}
-                <div className="xl:hidden mb-4 overflow-x-auto pb-2 flex gap-2 no-scrollbar">
-                    {tasks.map(t => (
-                        <button 
-                            key={t.id}
-                            onClick={() => setActiveTask(t.id)}
-                            className={cn(
-                                "shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
-                                activeTaskId === t.id ? "bg-primary text-white border-primary shadow-md shadow-purple-500/20" : "bg-purple-50 text-slate-400 border-purple-100"
-                            )}
+            <main className={cn(
+                "flex-1 bg-white min-h-screen transition-transform duration-300",
+                mobileView === "editor" ? "translate-x-0" : "translate-x-full md:translate-x-0 hidden md:block"
+            )}>
+                <div className="p-4 md:p-8 lg:p-12 space-y-8 max-w-5xl mx-auto">
+                    <AnimatePresence mode="wait">
+                    {activeTask ? (
+                        <motion.div 
+                            key={activeTaskId}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-8"
                         >
-                            #{t.sequence_number} {t.title.split(' ').slice(0, 2).join(' ')}...
-                        </button>
-                    ))}
-                </div>
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full tracking-[0.2em] uppercase">
+                                            Phase Sequence #{activeTask.sequence_number}
+                                        </span>
+                                        <span className={cn(
+                                            "text-[10px] font-black px-3 py-1 rounded-full tracking-[0.2em] uppercase border shadow-sm",
+                                            activeTask.status === 'done' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'
+                                        )}>
+                                            {activeTask.status}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter leading-tight">{activeTask.title}</h3>
+                                    <p className="text-slate-500 text-sm md:text-base max-w-3xl leading-relaxed font-medium">{activeTask.description}</p>
+                                </div>
+                            </div>
 
-                <AnimatePresence mode="wait">
-                {activeTask ? (
-                    <motion.div 
-                        key={activeTaskId}
-                        initial={{ opacity: 0, x: 16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -16 }}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                    >
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 md:mb-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+                                <div className="p-6 rounded-3xl border border-slate-100 bg-slate-50/30 space-y-6">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 px-1">
+                                        <FileCode className="h-4 w-4" /> Modified Files
+                                    </h4>
+                                    <div className="grid gap-2.5">
+                                        {activeTask.file_paths.map((f: string) => (
+                                            <div key={f} className="text-[11px] font-bold text-slate-600 font-mono flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm transition-all hover:border-primary/20">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 opacity-40" />
+                                                <span className="truncate">{f}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="p-6 rounded-3xl border border-slate-100 bg-slate-50/30 space-y-6">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 px-1">
+                                        <CheckCircle2 className="h-4 w-4" /> Quality Benchmarks
+                                    </h4>
+                                    <div className="grid gap-2.5">
+                                        {activeTask.acceptance_criteria.map((c: string) => (
+                                            <div key={c} className="text-[11px] flex items-center gap-4 text-slate-600 font-bold bg-white p-3 rounded-xl border border-slate-100 shadow-sm transition-all hover:border-emerald-100">
+                                                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                                                <span className="line-clamp-1">{c}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-12 pt-4">
+                                {activeTask.generated_prompt && activeTask.status === 'pending' && !isRunning && (
+                                  <div className="space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] shrink-0">Architectural Prompt</h4>
+                                        <div className="h-px bg-slate-100 flex-1" />
+                                    </div>
+                                    <PromptViewer 
+                                      prompt={activeTask.generated_prompt} 
+                                      onSend={(prompt) => triggerCodeGeneration(activeTask.id, prompt)} 
+                                      isGenerating={isRunning}
+                                    />
+                                  </div>
+                                )}
+
+                                {(isRunning || Object.keys(streamingCode).length > 0) && activeTask.status !== 'pending' ? (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] shrink-0">Synthesis Output</h4>
+                                            <div className="h-px bg-slate-100 flex-1" />
+                                        </div>
+                                        <div className="min-h-[400px]">
+                                            <StreamingCode codeFiles={streamingCode} isStreaming={isRunning} />
+                                        </div>
+                                    </div>
+                                ) : activeTask.generated_code && (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] shrink-0">Constructed Files</h4>
+                                            <div className="h-px bg-slate-100 flex-1" />
+                                        </div>
+                                        <div className="min-h-[400px]">
+                                            <StreamingCode codeFiles={activeTask.generated_code as any} isStreaming={false} />
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {activeTask.review_result && (
+                                    <ReviewPanel 
+                                        review={activeTask.review_result as any} 
+                                        onCommit={handleCommit} 
+                                        onRegenerate={() => {}}
+                                        isCommitting={isSyncing}
+                                    />
+                                )}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center flex-1 text-center py-20 md:py-40 space-y-8 opacity-60">
+                            <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] flex items-center justify-center rotate-6 shadow-sm">
+                                <CheckCircle2 className="h-12 w-12 text-slate-200" />
+                            </div>
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg tracking-widest uppercase">
-                                        Sequence #{activeTask.sequence_number}
-                                    </span>
-                                    <span className={cn(
-                                        "text-[10px] font-black px-2.5 py-1 rounded-lg tracking-widest uppercase",
-                                        activeTask.status === 'done' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'
-                                    )}>
-                                        {activeTask.status}
-                                    </span>
-                                </div>
-                                <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{activeTask.title}</h3>
-                                <p className="text-slate-500 text-sm max-w-3xl leading-relaxed font-medium">{activeTask.description}</p>
-                            </div>
-                            <Link href={`/project/${initialProject.id}/task/${activeTask.id}`} className="w-full sm:w-auto">
-                                <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 px-4 text-xs font-bold font-mono">
-                                    Full Details <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                                </Button>
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            <div className="p-4 md:p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <FileCode className="h-4 w-4" /> Affected Workspace
-                                </h4>
-                                <div className="grid gap-2">
-                                    {activeTask.file_paths.map((f: string) => (
-                                        <div key={f} className="text-[10px] md:text-[11px] font-bold text-slate-600 font-mono flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-100">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                                            <span className="truncate">{f}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="p-4 md:p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4" /> Acceptance Scorecard
-                                </h4>
-                                <div className="grid gap-2">
-                                    {activeTask.acceptance_criteria.map((c: string) => (
-                                        <div key={c} className="text-[10px] md:text-[11px] flex items-center gap-3 text-slate-600 font-bold bg-white p-2 rounded-lg border border-slate-100">
-                                            <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                                            <span className="line-clamp-1">{c}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase">System Optimized</h3>
+                                <p className="text-slate-500 font-medium px-8 max-w-sm">All pending logic nodes have been successfully finalized for this session.</p>
                             </div>
                         </div>
-
-                        <div className="mt-8 space-y-8">
-                            {activeTask.generated_prompt && activeTask.status === 'pending' && !isRunning && (
-                              <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Constructing Blueprint</h4>
-                                <PromptViewer 
-                                  prompt={activeTask.generated_prompt} 
-                                  onSend={(prompt) => triggerCodeGeneration(activeTask.id, prompt)} 
-                                  isGenerating={isRunning}
-                                />
-                              </div>
-                            )}
-
-                            {(isRunning || Object.keys(streamingCode).length > 0) && activeTask.status !== 'pending' ? (
-                                <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Logic Streaming Output</h4>
-                                    <div className="min-h-[300px]">
-                                        <StreamingCode codeFiles={streamingCode} isStreaming={isRunning} />
-                                    </div>
-                                </div>
-                            ) : activeTask.generated_code && (
-                                <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Constructed Payload</h4>
-                                    <div className="h-auto min-h-[300px]">
-                                        <StreamingCode codeFiles={activeTask.generated_code as any} isStreaming={false} />
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {activeTask.review_result && (
-                                <ReviewPanel 
-                                    review={activeTask.review_result as any} 
-                                    onCommit={handleCommit} 
-                                    onRegenerate={() => {}}
-                                    isCommitting={isSyncing}
-                                />
-                            )}
-                        </div>
-                    </motion.div>
-                ) : (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center flex-1 text-center py-20 md:py-40 space-y-6 opacity-40"
-                    >
-                        <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-100 rounded-3xl flex items-center justify-center rotate-3 border border-slate-200">
-                            <CheckCircle2 className="h-8 w-8 md:h-12 md:w-12 text-slate-300" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Queue Optimized</h3>
-                            <p className="text-sm text-slate-500 font-medium px-4">All pending logic tasks have been finalized for this phase.</p>
-                        </div>
-                    </motion.div>
-                )}
-                </AnimatePresence>
+                    )}
+                    </AnimatePresence>
+                </div>
             </main>
         </div>
     </div>

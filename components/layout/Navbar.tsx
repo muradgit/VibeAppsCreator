@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, LogOut, Code, Package, Menu, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Code, Package, Menu, X, User } from "lucide-react";
 import { useProjectStore } from "@/store/project.store";
+import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -12,19 +13,22 @@ export function Navbar() {
 
   return (
     <nav className="h-[60px] bg-white flex items-center justify-between px-4 md:px-6 border-b border-purple-100 shrink-0 z-50 sticky top-0 shadow-sm">
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={() => setSidebarOpen(!isSidebarOpen)}
-          className="p-2 md:hidden text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-        >
-          {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-        <Link href="/" className="flex items-center gap-3 font-bold text-slate-900 tracking-tight text-lg">
-          <div className="w-8 h-8 md:w-8 md:h-8 bg-primary rounded flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
+      <div className="flex items-center gap-3 md:gap-4">
+        {session && (
+          <button 
+            onClick={() => setSidebarOpen(!isSidebarOpen)}
+            className="p-2 -ml-2 text-primary hover:bg-purple-50 rounded-xl transition-colors md:hidden"
+            aria-label="Toggle Sidebar"
+          >
+            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        )}
+        <Link href="/" className="flex items-center gap-2 md:gap-3 font-bold text-slate-900 tracking-tight text-base md:text-lg group">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <Code className="w-5 h-5 text-white" />
           </div>
           <span className="hidden sm:inline">Apps Built By Apps</span>
-          <span className="sm:hidden">ABBA</span>
+          <span className="sm:hidden font-black">ABBA</span>
         </Link>
       </div>
       
@@ -32,31 +36,37 @@ export function Navbar() {
         {session ? (
           <>
             <div className="hidden lg:flex flex-col items-end mr-2">
-                <span className="text-[10px] text-purple-600 uppercase font-black tracking-tighter">Authenticated</span>
-                <span className="text-sm text-slate-900 font-bold">{session.user?.name}</span>
+                <span className="text-[9px] text-primary uppercase font-black tracking-widest">Authenticated Account</span>
+                <span className="text-xs text-slate-800 font-bold">{session.user?.name}</span>
             </div>
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-primary hover:bg-purple-50 h-9 px-2 md:px-3">
+              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-primary hover:bg-purple-50 h-9 px-2 md:px-3 rounded-lg overflow-hidden">
                 <LayoutDashboard className="md:mr-2 h-4 w-4" /> 
-                <span className="hidden md:inline">Dashboard</span>
+                <span className="hidden md:inline">Console</span>
               </Button>
             </Link>
-            <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => signOut()}
-                className="border-purple-100 text-slate-600 hover:bg-purple-50 hover:text-primary h-9 px-2 md:px-3"
-            >
-              <LogOut className="md:mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Sign Out</span>
-            </Button>
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold ring-2 ring-purple-100 shadow-lg shadow-purple-500/10">
-                {session.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+            <div className="flex items-center gap-2 pl-2 border-l border-purple-50">
+                <div className="w-8 h-8 rounded-full bg-slate-100 border border-purple-100 flex items-center justify-center text-primary text-xs font-black shadow-inner overflow-hidden shrink-0">
+                    {session.user?.image ? (
+                         <img src={session.user.image} alt="User" className="w-full h-full object-cover" />
+                    ) : (
+                        session.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || <User className="h-4 w-4" />
+                    )}
+                </div>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => signOut()}
+                    className="hidden sm:flex border-purple-50 text-[10px] uppercase tracking-widest font-black text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 h-8 px-3 rounded-lg transition-all"
+                >
+                    <LogOut className="mr-2 h-3.5 w-3.5" />
+                    Sign Out
+                </Button>
             </div>
           </>
         ) : (
-          <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 h-9 shadow-lg shadow-purple-500/20" asChild>
-            <Link href="/dashboard">Get Started</Link>
+          <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 h-9 px-6 rounded-lg text-xs font-black shadow-xl shadow-purple-500/20 uppercase tracking-widest transition-all hover:scale-105 active:scale-95" asChild>
+            <Link href="/dashboard">Initialize</Link>
           </Button>
         )}
       </div>

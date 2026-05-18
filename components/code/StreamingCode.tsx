@@ -10,7 +10,7 @@ export function StreamingCode({ codeFiles, isStreaming }: { codeFiles: Record<st
   if (fileEntries.length === 0 && !isStreaming) {
     return (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 min-h-[300px] flex items-center justify-center border-dashed">
-            <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex flex-col items-center gap-4 text-center p-6">
                 <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
                     <Terminal className="h-6 w-6 text-slate-400" />
                 </div>
@@ -24,10 +24,10 @@ export function StreamingCode({ codeFiles, isStreaming }: { codeFiles: Record<st
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-[#0F172A] overflow-hidden flex flex-col min-h-[400px] shadow-2xl">
-      <div className="h-10 bg-slate-800 flex items-center justify-between px-4">
-        <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
+    <div className="rounded-2xl border border-slate-200 bg-[#0F172A] overflow-hidden flex flex-col min-h-[400px] shadow-2xl no-smooth-scroll">
+      <div className="h-10 bg-slate-800 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden sm:flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
@@ -42,13 +42,13 @@ export function StreamingCode({ codeFiles, isStreaming }: { codeFiles: Record<st
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-48 bg-slate-900 border-r border-white/5 flex flex-col py-4 shrink-0 overflow-y-auto">
-            <div className="px-4 mb-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">Files</div>
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className="w-full md:w-48 bg-slate-900 border-b md:border-b-0 md:border-r border-white/5 flex flex-row md:flex-col py-2 md:py-4 shrink-0 overflow-x-auto md:overflow-y-auto no-scrollbar">
+            <div className="px-4 mb-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:block">Files</div>
             {fileEntries.map(([filename]) => (
                 <div 
                     key={filename} 
-                    className="flex items-center gap-2 px-4 py-2 text-[11px] font-mono text-blue-400 bg-blue-500/5 border-l-2 border-blue-500 cursor-pointer"
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 text-[10px] md:text-[11px] font-mono text-blue-400 bg-blue-500/5 border-b-2 md:border-b-0 md:border-l-2 border-blue-500 cursor-pointer whitespace-nowrap"
                 >
                     <FileCode className="h-3 w-3" />
                     {filename.split('/').pop()}
@@ -56,7 +56,7 @@ export function StreamingCode({ codeFiles, isStreaming }: { codeFiles: Record<st
             ))}
         </div>
         
-        <div className="flex-1 bg-slate-950 p-6 overflow-y-auto font-mono text-[13px] leading-relaxed relative">
+        <div className="flex-1 bg-slate-950 p-4 md:p-6 overflow-auto font-mono text-[12px] md:text-[13px] leading-relaxed relative custom-scrollbar">
             {fileEntries.map(([filename, code]) => (
                 <pre key={filename} className="text-slate-300">
                     <code>{code}</code>
