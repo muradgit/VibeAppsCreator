@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const { data: task } = await (supabase as any).from("tasks").select("*").eq("id", taskId).single();
     if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
-    const model = await getProjectGeminiModel(projectId);
+    const model = await getProjectGeminiModel(task.project_id);
     const input = `Task Checklist: ${task.acceptance_criteria.join(", ")}
 Generated Code: ${JSON.stringify(task.generated_code)}`;
 

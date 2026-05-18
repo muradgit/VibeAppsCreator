@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { GithubConnect } from "@/components/connect/GithubConnect";
 import { VercelConnect } from "@/components/connect/VercelConnect";
